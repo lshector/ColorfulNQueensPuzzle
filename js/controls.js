@@ -1,6 +1,9 @@
 const playButton = document.getElementById('playButton');
 const generateButton = document.getElementById('generateButton');
+
 const solveButton = document.getElementById('solveButton');
+const solvePuzzleButton = document.getElementById('solvePuzzleButton');
+
 const uploadButton = document.getElementById('uploadButton');
 const editButton = document.getElementById('editButton');
 
@@ -27,6 +30,7 @@ export class PuzzleControls {
             play: playButton,
             generate: generateButton,
             solve: solveButton,
+            solvePuzzle: solvePuzzleButton,
             upload: uploadButton,
             edit: editButton,
         };
@@ -34,6 +38,7 @@ export class PuzzleControls {
         playButton.addEventListener('click', () => this.handlePlayClick());
         generateButton.addEventListener('click', () => this.handleGenerateClick());
         solveButton.addEventListener('click', () => this.handleSolveClick());
+        solvePuzzleButton.addEventListener('click', () => this.handleSolvePuzzleButtonClick());
         uploadButton.addEventListener('click', () => this.handleUploadClick());
         editButton.addEventListener('click', () => this.handleEditClick());
 
@@ -54,6 +59,13 @@ export class PuzzleControls {
 
     handleSolveClick() {
         this.showMenu('solve');
+    }
+    
+    handleSolvePuzzleButtonClick() {
+        // Implement your puzzle solving logic here
+        this.puzzle.clearState();
+        console.log("Solving the puzzle...");
+        // ... your code to solve the puzzle ...
     }
 
     handleUploadClick() {

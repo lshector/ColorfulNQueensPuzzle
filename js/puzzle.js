@@ -1,7 +1,5 @@
 const gridContainer = document.getElementById('grid-container');
 
-const CELL_SIZE_PX = '50px'
-
 export class PuzzleGrid {
     constructor(N) {
         console.log(`Initializing PuzzleGrid of size ${N}`);
