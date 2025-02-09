@@ -50,7 +50,7 @@ body .button.selected, /* Include <body> or a high-level parent */
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 30px; /* Or whatever size you prefer */
+    font-size: 50px; /* Or whatever size you prefer */
     font-weight: bold;
     user-select: none;
     font-family: sans-serif;
