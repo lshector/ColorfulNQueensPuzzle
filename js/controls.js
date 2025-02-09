@@ -1,3 +1,5 @@
+import { solvePuzzleBacktracking, solvePuzzleDeductive } from "./solvers.js"
+
 export class SelectModeControls {
     constructor(puzzle) {
         this.puzzle = puzzle;
@@ -103,25 +105,13 @@ class SolveMenuControls extends MenuControls {
 
     selectAlgorithm(algorithm) {
         this.selectedAlgorithm = algorithm;
-
-        this.backtrackingButton.classList.remove('selected');
-        this.deductiveButton.classList.remove('selected');
+        this.puzzle.clearState();
 
         if (algorithm === 'backtracking') {
-            this.backtrackingButton.classList.add('selected');
+            solvePuzzleBacktracking(this.puzzle);
         } else if (algorithm === 'deductive') {
-            this.deductiveButton.classList.add('selected');
+            solvePuzzleDeductive(this.puzzle);
         }
-    }
-
-    solvePuzzleBacktracking() {
-        console.log("Solving puzzle using backtracking...");
-        this.solvePuzzleBacktracking();
-    }
-
-    solvePuzzleDeductive() {
-        console.log("Solving puzzle using deduction...");
-        this.solvePuzzleDeductive();
     }
 }
 
