@@ -1,15 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Interactive Grid with State</title>
-<link rel="stylesheet" href="grid.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colorful N Queens Puzzle Playground</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="title-description">
+        <h1>Colorful N Queens Puzzle Playground</h1>
+        <p>
+            The Colored N-Queens Puzzle (created by <a href="https://www.linkedin.com/games/queens/">LinkedIn</a>) is a variation of the classical N-Queens problem. <br>
+            <br>
+            The puzzle involves placing `N` colored queens on an `N x N` chessboard such that: <br>
+            - Exactly one queen is placed in each row, column, and color region. <br>
+            - No two queens are adjacent to each other (including diagonally) <br>
+        </p>
+    </div>
 
-<div id="grid-container"></div>
-<button id="darken-button">Darken Non-Queens</button>
+    <div id="mode-select-controls">
+        <p>Select Mode:</p>
+        <button id="playButton">Play</button>
+        <button id="generateButton">Generate</button>
+        <button id="solveButton">Solve</button>
+        <button id="uploadButton">Upload</button>
+        <button id="editButton">Edit</button>
+    </div>
 
-<script src="grid.js"></script>
+    <div id="grid-container">
+    </div>
 
+    <div id="controls-panel">
+        <div id="play-menu" class="menu" style="display: none;">
+            <h2>Play Mode</h2>
+            <p>Options for Play Mode go here.</p>
+            <button>Start Game</button>
+            <button>Reset</button>
+        </div>
+
+        <div id="generate-menu" class="menu" style="display: none;">
+            <h2>Generate Mode</h2>
+            <p>Options for Generate Mode go here.</p>
+            <label for="size">Grid Size:</label>
+            <input type="number" id="size" value="8"><br><br>
+            <button>Generate Puzzle</button>
+        </div>
+
+        <div id="solve-menu" class="menu" style="display: none;">
+            <h2>Solve Mode</h2>
+            <p>Options for Solve mode go here.</p>
+            <button>Solve Puzzle</button>
+        </div>
+
+        <div id="upload-menu" class="menu" style="display: none;">
+            <h2>Upload Mode</h2>
+            <p>Upload a saved game state.</p>
+            <input type="file" id="fileElem" accept="image/*">
+        </div>
+
+        <div id="edit-menu" class="menu" style="display: none;">
+            <h2>Edit Mode</h2>
+            <p>Options for Edit Mode go here.</p>
+            <button>Clear Grid</button>
+        </div>
+
+        <p id="default-message" class="menu">Select a mode to begin.</p>
+    </div>
+    
+    <script src="js/script.js" type="module"></script>
 </body>
 </html>
