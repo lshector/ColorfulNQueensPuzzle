@@ -7,25 +7,11 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="title-description">
-        <h1>Colorful N Queens Puzzle Playground</h1>
-        <p>
-            The Colored N-Queens puzzle (created by <a href="https://www.linkedin.com/games/queens/">LinkedIn</a> as the "Queens" game) <br>
-            is a variation of the classical <a href="https://en.wikipedia.org/wiki/Eight_queens_puzzle">N-Queens problem</a>. <br>
-            <br>
-            The puzzle involves placing `N` colored queens on an `N x N` chessboard such that: <br>
-            - Exactly one queen is placed in each row, column, and color region. <br>
-            - No two queens are adjacent to each other (including diagonally) <br>
-            <br>
-            In this website, you can play the puzzle and explore different algorithms <br>
-            related to solving and/or generating the puzzle.
-        </p>
-    </div>
-
     <div id="grid-container">
     </div>
 
     <div id="mode-select-controls">
+        <button class="button" id="infoButton">Info</button>
         <button class="button" id="playButton">Play</button>
         <button class="button" id="generateButton">Generate</button>
         <button class="button" id="solveButton">Solve</button>
@@ -34,36 +20,52 @@
     </div>
 
     <div id="controls-panel">
+        <div id="info-menu" class="menu" style="display: none;">
+            <h2>Colorful N Queens Puzzle Playground</h2>
+            The Colorful N-Queens puzzle (created by <a href="https://www.linkedin.com/games/queens/">LinkedIn</a> as the "Queens" game) <br>
+            is a variation of the classical <a href="https://en.wikipedia.org/wiki/Eight_queens_puzzle">N-Queens problem</a>. <br>
+            <br>
+            The puzzle involves placing `N` colored queens on an `N x N` chessboard such that: <br>
+            - Exactly one queen is placed in each row, column, and color region. <br>
+            - No two queens are adjacent to each other (including diagonally) <br>
+            <br>
+            In this website, you can play the puzzle and explore different algorithms <br>
+            related to solving and/or generating the puzzle.
+        </div>
+
         <div id="play-menu" class="menu" style="display: none;">
             <h2>Play Mode</h2>
-            <button class="button">Reset</button>
-            <button class="button">Hint</button>
+            <button id="resetButton" class="button">Reset</button>
+            <button id="hintButton" class="button">Hint</button>
             <br><br>
             In play mode, you can click on the cells to try to solve the puzzle.<br><br>
             You may mark a cell with a '♛' to place a queen or with an 'x' to indicate that <br>
             no queen should be placed there.<br><br>
-            If a queen is placed in an invalid position, conflicting cells will be highlighted.
+            If a queen is placed in an invalid position, the conflicting cells will be highlighted.
         </div>
 
         <div id="generate-menu" class="menu" style="display: none;">
             <h2>Generate Mode</h2>
-            <p>Options for Generate Mode go here.</p>
+            <button class="button">Generate Puzzle</button>
+            <div id="alg-steps-container-generate"></div>
+
             <label for="size">Grid Size:</label>
             <input type="number" id="size" value="8"><br><br>
-            <button class="button">Generate Puzzle</button>
         </div>
 
         <div id="solve-menu" class="menu" style="display: none;">
             <h2>Solve Mode</h2>
             <div class="algorithm-selection">
-                <span class="algorithm-label">Solver Algorithm:</span>
-                <button id="backtrackingButton" class="button active">Backtracking</button>
-                <button id="deductiveButton" class="button">Deductive</button>
+                <button id="backtrackingButton" class="button active">Solve with Backtracking</button>
+                <button id="deductiveButton" class="button">Solve with Deduction</button>
             </div>
+
+            <div id="alg-steps-container-solve"></div>
+
             <p>
                 In solve mode, you can explore two algorithms for solving the puzzle:<br><br>
                 • <b>Backtracking</b>: A bruteforce algorithm that solves the puzzle through trial and error.<br>
-                • <b>Deduction</b>: Solve the puzzle by applying logical rules and constraints to eliminate possibilities until the solution is found.<br>
+                • <b>Deduction</b>: A constraint propagation algorithm which applies logical rules and constraints to eliminate possibilities until the solution is found.<br>
             </p>
         </div>
 

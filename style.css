@@ -36,22 +36,6 @@ body .button.selected, /* Include <body> or a high-level parent */
 
 
 
-#title-description {
-    text-align: center;
-    margin-bottom: 30px; /* Increased margin */
-}
-
-#title-description h1 {
-    color: #2c3e50; /* A nice dark blue for the heading */
-    font-size: 2.5em; /* Larger heading */
-    margin-bottom: 10px;
-}
-
-#title-description p {
-    line-height: 1.6; /* Improved readability */
-    max-width: 800px; /* Prevents text from stretching too wide */
-}
-
 #grid-container {
     width: 600px;
     display: grid;
@@ -120,4 +104,82 @@ body .button.selected, /* Include <body> or a high-level parent */
   border-radius: 4px;
   margin-bottom: 10px;
   width: 50px; /* Adjust as needed */
+}
+
+
+
+.algorithm-steps-widget {
+    border: 1px solid #ddd; /* Softer border */
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px; /* Slightly rounded corners */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    background-color: #f9f9f9; /* Light background */
+}
+
+.slider-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px; /* Space below slider */
+}
+
+.step-buttons {
+    background-color: #eee; /* Light gray background for buttons */
+    border: none;
+    padding: 6px 12px; /* Adjusted padding */
+    margin: 0 3px; /* Smaller margin */
+    border-radius: 3px; /* Rounded button corners */
+    cursor: pointer;
+    transition: background-color 0.2s ease; /* Smooth transition */
+}
+
+.step-buttons:hover {
+    background-color: #ddd; /* Darker on hover */
+}
+
+.step-buttons:active {
+    background-color: #ccc; /* Even darker on click */
+}
+
+.step-slider {
+    flex-grow: 1;
+    margin-right: 10px; /* Increased margin */
+    -webkit-appearance: none; /* Customize slider appearance (Chrome) */
+    height: 8px; /* Thinner slider */
+    background: #e0e0e0; /* Light gray track */
+    outline: none;
+    opacity: 0.7; /* Slightly transparent */
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+    border-radius: 4px; /* Rounded track */
+}
+
+.step-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px; /* Larger thumb */
+    height: 16px;
+    border-radius: 50%; /* Round thumb */
+    background: #666; /* Darker thumb */
+    cursor: pointer;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2); /* Thumb shadow */
+}
+
+.step-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #666;
+    cursor: pointer;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+
+.slider-value {
+    width: 50px;
+    padding: 4px; /* Small padding */
+    border: 1px solid #ccc; /* Light border */
+    border-radius: 3px; /* Rounded corners */
+    text-align: center; /* Center the text */
+    background-color: #fff; /* White background */
 }

@@ -31,16 +31,7 @@ export class PuzzleGrid {
                         this.refreshAppearanceCellState(i, j); // Make sure this function is defined
                     }
                     else if (this.clickResponse === 'setLabel') {
-                        if (this.labels[i][j] == -1) {
-                            this.labels[i][j] = 0;
-                        }
-                        else if (this.labels[i][j] == this.N-1) {
-                            this.labels[i][j] = -1;
-                        }
-                        else {
-                            this.labels[i][j] += 1;
-                        }
-
+                        this.cycleLabel(i, j);
                         this.refreshAppearanceAllLabels();
                     }
                 });
@@ -145,5 +136,38 @@ export class PuzzleGrid {
                 this.refreshAppearanceCellState(i, j)
             }
         } 
+    }
+
+    cycleLabel(i, j) {
+        const neighbors = [];
+
+        // Get neighbor labels (handling boundary conditions)
+        const up = (i > 0) ? this.labels[i - 1][j] : null;
+        const down = (i < this.N - 1) ? this.labels[i + 1][j] : null;
+        const left = (j > 0) ? this.labels[i][j - 1] : null;
+        const right = (j < this.N - 1) ? this.labels[i][j + 1] : null;
+
+        // Ensure each label only appears once
+        [up, down, left, right].forEach(neighbor => {
+            if (neighbor !== null && !neighbors.includes(neighbor)) {
+                neighbors.push(neighbor);
+            }
+        });
+        
+
+        const currentLabel = this.labels[i][j];
+        if (currentLabel === -1) {
+            // Start with first neighbor or stay -1 if no neighbors
+            this.labels[i][j] = neighbors.length > 0 ? neighbors[0] : -1;
+        } else {
+            const currentIndex = neighbors.indexOf(currentLabel);
+
+            if (currentIndex !== -1) {
+                const nextIndex = (currentIndex + 1) % neighbors.length;
+                this.labels[i][j] = neighbors[nextIndex];
+            } else {
+                this.labels[i][j] = -1; // If current label is not a neighbor, reset to -1
+            }
+        }
     }
 }
