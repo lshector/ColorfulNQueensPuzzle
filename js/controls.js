@@ -1,7 +1,7 @@
 export class SelectModeControls {
     constructor(puzzle) {
         this.puzzle = puzzle;
-        
+
         this.buttons = {
             play: document.getElementById('playButton'),
             generate: document.getElementById('generateButton'),
@@ -10,7 +10,7 @@ export class SelectModeControls {
             edit: document.getElementById('editButton'),
         };
 
-        this.menuElements = {
+        this.menus = { // Use a more descriptive name
             play: new PlayMenuControls(puzzle),
             generate: new GenerateMenuControls(puzzle),
             solve: new SolveMenuControls(puzzle),
@@ -18,23 +18,20 @@ export class SelectModeControls {
             edit: new EditMenuControls(puzzle),
         };
 
-        playButton.addEventListener('click', () => this.showMenu('play'));
-        generateButton.addEventListener('click', () => this.showMenu('generate'));
-        solveButton.addEventListener('click', () => this.showMenu('solve'));
-        uploadButton.addEventListener('click', () => this.showMenu('upload'));
-        editButton.addEventListener('click', () => this.showMenu('edit'));
+        for (const buttonName in this.buttons) { // More efficient loop
+            this.buttons[buttonName].addEventListener('click', () => this.showMenu(buttonName));
+        }
     }
 
     showMenu(menuName) {
         this.hideAllMenus();
-        this.unselectAllButtons(); // Clear previous selections
+        this.unselectAllButtons();
 
-        if (this.menuElements[menuName]) {
-            this.menuElements[menuName].show();
+        const menu = this.menus[menuName]; // Get menu reference
 
-            if (this.buttons[menuName]) {
-                this.buttons[menuName].classList.add('selected');
-            }
+        if (menu) {
+            menu.show();
+            this.buttons[menuName].classList.add('selected');
         } else {
             console.error(`Menu with name ${menuName} not found.`);
         }
@@ -43,22 +40,23 @@ export class SelectModeControls {
     }
 
     hideAllMenus() {
-        for (const menu in this.menuElements) {
-            this.menuElements[menu].hide();
+        for (const menu in this.menus) {
+            this.menus[menu].hide();
         }
     }
 
-    unselectAllButtons() {  // Helper function to clear button styles
+    unselectAllButtons() {
         for (const button in this.buttons) {
             this.buttons[button].classList.remove('selected');
         }
     }
 }
 
-class PlayMenuControls {
-    constructor(puzzle) {
-        this.puzzle = puzzle
-        this.menu = document.getElementById('play-menu');
+// Abstract base class for Menu Controls (DRY principle)
+class MenuControls {
+    constructor(puzzle, menuId) {
+        this.puzzle = puzzle;
+        this.menu = document.getElementById(menuId);
     }
 
     hide() {
@@ -70,42 +68,29 @@ class PlayMenuControls {
     }
 }
 
-class GenerateMenuControls {
+class PlayMenuControls extends MenuControls {
     constructor(puzzle) {
-        this.puzzle = puzzle
-        this.menu = document.getElementById('generate-menu');
-    }
-
-    hide() {
-        this.menu.style.display = 'none';
-    }
-
-    show() {
-        this.menu.style.display = 'block';
+        super(puzzle, 'play-menu'); // Call the super constructor
     }
 }
 
-class SolveMenuControls {
+class GenerateMenuControls extends MenuControls {
     constructor(puzzle) {
-        this.puzzle = puzzle
-        this.menu = document.getElementById('solve-menu');
+        super(puzzle, 'generate-menu');
+        // Add generate-specific logic here if needed
+    }
+}
 
-        this.backtrackingButton = document.getElementById('backtrackingButton')
-        this.deductiveButton = document.getElementById('deductiveButton')
-        
-        
+class SolveMenuControls extends MenuControls {
+    constructor(puzzle) {
+        super(puzzle, 'solve-menu');
+        this.backtrackingButton = document.getElementById('backtrackingButton');
+        this.deductiveButton = document.getElementById('deductiveButton');
+
         this.backtrackingButton.addEventListener('click', () => this.selectAlgorithm('backtracking'));
         this.deductiveButton.addEventListener('click', () => this.selectAlgorithm('deductive'));
-        
-        this.selectedAlgorithm = 'backtracking'; // Initial selection
-    }
 
-    hide() {
-        this.menu.style.display = 'none';
-    }
-
-    show() {
-        this.menu.style.display = 'block';
+        this.selectedAlgorithm = 'backtracking';
     }
 
     selectAlgorithm(algorithm) {
@@ -116,54 +101,33 @@ class SolveMenuControls {
 
         if (algorithm === 'backtracking') {
             this.backtrackingButton.classList.add('selected');
-            this.solvePuzzleBacktracking();
         } else if (algorithm === 'deductive') {
             this.deductiveButton.classList.add('selected');
-            this.solvePuzzleDeductive();
         }
     }
 
     solvePuzzleBacktracking() {
-        console.log("Solving puzzle using backtracking...")
+        console.log("Solving puzzle using backtracking...");
+        this.solvePuzzleBacktracking();
     }
 
     solvePuzzleDeductive() {
-        console.log("Solving puzzle using deduction...")
+        console.log("Solving puzzle using deduction...");
+        this.solvePuzzleDeductive();
     }
 }
 
-class UploadMenuControls {
+class UploadMenuControls extends MenuControls {
     constructor(puzzle) {
-        this.puzzle = puzzle
-        this.menu = document.getElementById('upload-menu');
-    }
-
-    hide() {
-        this.menu.style.display = 'none';
-    }
-
-    show() {
-        this.menu.style.display = 'block';
+        super(puzzle, 'upload-menu');
+        // Add upload-specific logic here if needed
     }
 }
 
-class EditMenuControls {
+class EditMenuControls extends MenuControls {
     constructor(puzzle) {
-        this.puzzle = puzzle
-        this.menu = document.getElementById('edit-menu');
-
-        this.buttons = {
-            clearGrid: document.getElementById('clearGridButton'),
-        };
-
-        this.buttons.clearGrid.addEventListener('click', () => this.puzzle.clearLabels());
-    }
-
-    hide() {
-        this.menu.style.display = 'none';
-    }
-
-    show() {
-        this.menu.style.display = 'block';
+        super(puzzle, 'edit-menu');
+        this.clearGridButton = document.getElementById('clearGridButton'); // Direct reference
+        this.clearGridButton.addEventListener('click', () => this.puzzle.clearLabels());
     }
 }
