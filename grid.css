@@ -1,0 +1,49 @@
+/* grid.css */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: sans-serif;
+  }
+  
+  #grid-container {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    border: 1px solid black;
+  }
+  
+  .grid-cell {
+    width: 50px;
+    height: 50px;
+    border: 1px solid lightgray;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    user-select: none;
+  }
+  
+  .grid-cell:hover {
+    background-color: lightblue;
+  }
+  
+  .x-mark {
+    font-size: 30px;
+    color: black;
+  }
+  
+  .queen {
+    font-size: 30px;
+    color: black;
+  }
+  
+  .grid-cell.striped { /* Style for striped cells */
+    background-image: 
+      linear-gradient(45deg, #ddd 25%, transparent 25%), /* Adjust color and density */
+      linear-gradient(-45deg, #ddd 25%, transparent 25%);
+    background-size: 10px 10px; /* Adjust stripe size */
+  }  
