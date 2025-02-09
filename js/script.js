@@ -1,5 +1,5 @@
 import { PuzzleGrid } from './puzzle.js'
-import { PuzzleControls } from './controls.js'
+import { SelectModeControls } from './controls.js'
 
 // List of 11 common colors
 export const COLOR_SCHEME = [
@@ -23,5 +23,5 @@ let puzzle = new PuzzleGrid(GRID_LABELS.length)
 puzzle.setColorScheme(COLOR_SCHEME)
 puzzle.setLabels(GRID_LABELS)
 
-let controls = new PuzzleControls(puzzle)
-
+let selectModeControls = new SelectModeControls(puzzle)
+selectModeControls.buttons.play.click(); // Start in play mode

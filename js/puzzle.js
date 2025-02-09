@@ -66,6 +66,16 @@ export class PuzzleGrid {
         this.refreshAppearanceAllLabels()
     }
 
+    clearLabels() {
+        for (let i = 0; i < this.N; i++) {
+            for (let j = 0; j < this.N; j++) {
+                this.labels[i][j] = -1
+            }
+        } 
+
+        this.refreshAppearanceAllLabels()
+    }
+
     refreshAppearanceAllLabels() {
         // Update puzzle appearance
         for (let i = 0; i < this.N; i++) {
@@ -78,7 +88,7 @@ export class PuzzleGrid {
                 if (label >= 0 && label < this.colorScheme.length) { // Check bounds
                     cell.style.backgroundColor = this.colorScheme[label];
                 } else {
-                  console.warn("Label out of bounds", label);
+                    cell.style.backgroundColor = 'white';
                 }
    
                 // Set default border

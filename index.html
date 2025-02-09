@@ -22,23 +22,27 @@
         </p>
     </div>
 
-    <div id="mode-select-controls">
-        <button id="playButton">Play</button>
-        <button id="generateButton">Generate</button>
-        <button id="solveButton">Solve</button>
-        <button id="uploadButton">Upload</button>
-        <button id="editButton">Edit</button>
+    <div id="grid-container">
     </div>
 
-    <div id="grid-container">
+    <div id="mode-select-controls">
+        <button class="button" id="playButton">Play</button>
+        <button class="button" id="generateButton">Generate</button>
+        <button class="button" id="solveButton">Solve</button>
+        <button class="button" id="uploadButton">Upload</button>
+        <button class="button" id="editButton">Edit</button>
     </div>
 
     <div id="controls-panel">
         <div id="play-menu" class="menu" style="display: none;">
             <h2>Play Mode</h2>
-            <p>Options for Play Mode go here.</p>
-            <button>Start Game</button>
-            <button>Reset</button>
+            <button class="button">Reset</button>
+            <button class="button">Hint</button>
+            <br><br>
+            In play mode, you can click on the cells to try to solve the puzzle.<br><br>
+            You may mark a cell with a '♛' to place a queen or with an 'x' to indicate that <br>
+            no queen should be placed there.<br><br>
+            If a queen is placed in an invalid position, conflicting cells will be highlighted.
         </div>
 
         <div id="generate-menu" class="menu" style="display: none;">
@@ -46,17 +50,21 @@
             <p>Options for Generate Mode go here.</p>
             <label for="size">Grid Size:</label>
             <input type="number" id="size" value="8"><br><br>
-            <button>Generate Puzzle</button>
+            <button class="button">Generate Puzzle</button>
         </div>
 
         <div id="solve-menu" class="menu" style="display: none;">
             <h2>Solve Mode</h2>
+            <div class="algorithm-selection">
+                <span class="algorithm-label">Solver Algorithm:</span>
+                <button id="backtrackingButton" class="button active">Backtracking</button>
+                <button id="deductiveButton" class="button">Deductive</button>
+            </div>
             <p>
-                In this mode, you can explore two algorithms for solving the puzzle:<br><br>
+                In solve mode, you can explore two algorithms for solving the puzzle:<br><br>
                 • <b>Backtracking</b>: A bruteforce algorithm that solves the puzzle through trial and error.<br>
                 • <b>Deduction</b>: Solve the puzzle by applying logical rules and constraints to eliminate possibilities until the solution is found.<br>
             </p>
-            <button id="solvePuzzleButton">Solve Puzzle</button>
         </div>
 
         <div id="upload-menu" class="menu" style="display: none;">
@@ -68,10 +76,8 @@
         <div id="edit-menu" class="menu" style="display: none;">
             <h2>Edit Mode</h2>
             <p>Options for Edit Mode go here.</p>
-            <button>Clear Grid</button>
+            <button id="clearGridButton" class="button">Clear Grid</button>
         </div>
-
-        <p id="default-message" class="menu">Select a mode to begin.</p>
     </div>
     
     <script src="js/script.js" type="module"></script>

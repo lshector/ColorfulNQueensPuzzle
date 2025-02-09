@@ -9,6 +9,33 @@ body {
     color: #333; /* Darker text for better contrast */
 }
 
+/* General Button Styles (Consistent across all buttons) */
+.button {
+    padding: 12px 25px; /* Slightly larger buttons */
+    border: none;
+    border-radius: 8px; /* More rounded corners */
+    background-color: #3498db; /* A more vibrant blue */
+    color: white;
+    font-weight: 500; /* Slightly bolder text */
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow on buttons */
+}
+
+.button:hover {
+    background-color: #2980b9; /* Darker blue on hover */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15); /* Slightly larger shadow on hover */
+}
+
+body .button.selected, /* Include <body> or a high-level parent */
+#mode-select-controls button.selected, /* Keep this for mode-select specifically */
+.menu .button.selected { /* Include any other parent containers */
+    background-color: #2ecc71;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+
 #title-description {
     text-align: center;
     margin-bottom: 30px; /* Increased margin */
@@ -63,37 +90,10 @@ body {
     /* Add other styles as needed (e.g., font-family, color) */
 }
 
-
-
 #mode-select-controls {
     display: flex;
     gap: 15px; /* Increased gap */
-    margin-bottom: 20px; /* Space below the buttons */
 }
-
-#mode-select-controls button {
-    padding: 12px 25px; /* Slightly larger buttons */
-    border: none;
-    border-radius: 8px; /* More rounded corners */
-    background-color: #3498db; /* A more vibrant blue */
-    color: white;
-    font-weight: 500; /* Slightly bolder text */
-    cursor: pointer;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow on buttons */
-}
-
-#mode-select-controls button:hover {
-    background-color: #2980b9; /* Darker blue on hover */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15); /* Slightly larger shadow on hover */
-}
-
-#mode-select-controls button.selected {
-    background-color: #2ecc71; /* Green for active button */
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-
 
 #controls-panel {
     margin-top: 20px;
@@ -120,24 +120,4 @@ body {
   border-radius: 4px;
   margin-bottom: 10px;
   width: 50px; /* Adjust as needed */
-}
-
-#generate-menu button { /* Style the generate button specifically */
-    padding: 10px 20px;
-    background-color: #2ecc71;  /* Green */
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-#generate-menu button:hover {
-    background-color: #27ae60; /* Darker green on hover */
-}
-
-/* Style for error messages (if needed) */
-.error-message {
-    color: red;
-    margin-top: 10px;
 }
