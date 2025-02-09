@@ -2,17 +2,14 @@ const gridContainer = document.getElementById('grid-container');
 
 const CELL_SIZE_PX = '50px'
 
-//let puzzle_labels = null
-//let puzzle_state = null
-//let puzzle_colors = null
-
 export class PuzzleGrid {
     constructor(N) {
-        this.N = N
-        this.color_scheme = null
-
         console.log(`Initializing PuzzleGrid of size ${N}`)
-        
+        this.N = N
+        this.colorScheme = null
+        this.state = Array(this.N).fill(null).map(() => Array(this.N).fill(0));
+        this.clickResponseEnabled = false
+
         // Clear existing grid
         gridContainer.innerHTML = '';
 
@@ -25,6 +22,14 @@ export class PuzzleGrid {
                 cell.style.height = CELL_SIZE_PX;
                 cell.style.boxSizing = 'border-box';
 
+                cell.addEventListener('click', () => {
+                    if (this.clickResponseEnabled) {
+                        // Cycle cell state on click (Empty -> X -> Queen -> Empty)
+                        this.state[i][j] = (this.state[i][j] + 1) % 3;
+                        this.refreshAppearanceCellState(i, j);
+                    }
+                });
+
                 gridContainer.appendChild(cell);
             }
         }
@@ -33,18 +38,18 @@ export class PuzzleGrid {
         gridContainer.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
     }
 
-    setColorScheme(new_color_scheme) {
-        if (new_color_scheme.length < this.N) {
-            console.error(`Input color scheme has ${new_color_scheme.length} entries, need ${this.N}`)
+    setColorScheme(new_colorScheme) {
+        if (new_colorScheme.length < this.N) {
+            console.error(`Input color scheme has ${new_colorScheme.length} entries, need ${this.N}`)
             return
         }
 
-        console.log(`Setting puzzle color scheme: ${new_color_scheme}`)
-        this.color_scheme = new_color_scheme
+        console.log(`Setting puzzle color scheme: ${new_colorScheme}`)
+        this.colorScheme = new_colorScheme
     }
 
     setLabels(new_labels) {
-        if (this.color_scheme == null) {
+        if (this.colorScheme == null) {
             console.error(`Can't set puzzle labels because no color scheme is set`)
             return;
         }
@@ -55,9 +60,10 @@ export class PuzzleGrid {
 
         console.log(`Setting labels: ${new_labels}`)
         this.labels = new_labels
+        this.refreshAppearanceAllLabels()
+    }
 
-        
-
+    refreshAppearanceAllLabels() {
         // Update puzzle appearance
         for (let i = 0; i < this.N; i++) {
             for (let j = 0; j < this.N; j++) {
@@ -66,8 +72,8 @@ export class PuzzleGrid {
     
                 // Color assignment
                 const label = this.labels[i][j];
-                if (label >= 0 && label < this.color_scheme.length) { // Check bounds
-                    cell.style.backgroundColor = this.color_scheme[label];
+                if (label >= 0 && label < this.colorScheme.length) { // Check bounds
+                    cell.style.backgroundColor = this.colorScheme[label];
                 } else {
                   console.warn("Label out of bounds", label);
                 }
@@ -92,5 +98,29 @@ export class PuzzleGrid {
                 }
             }
         }
+    }
+
+    refreshAppearanceCellState(row, col) {
+      const cell = gridContainer.children[row * this.N + col];
+      cell.innerHTML = "";
+      
+      if (this.state[row][col] === 1) {
+        const xMark = document.createElement('span');
+        xMark.textContent = 'x';
+        cell.appendChild(xMark);
+      } else if (this.state[row][col] === 2) {
+        const queen = document.createElement('span');
+        queen.textContent = '♛';
+        cell.appendChild(queen);
+      }
+    }
+    
+    clearState() {
+        for (let i = 0; i < this.N; i++) {
+            for (let j = 0; j < this.N; j++) {
+                this.state[i][j] = 0
+                this.refreshAppearanceCellState(i, j)
+            }
+        } 
     }
 }

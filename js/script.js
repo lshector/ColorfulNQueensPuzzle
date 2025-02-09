@@ -1,8 +1,8 @@
 import { PuzzleGrid } from './puzzle.js'
-import './controls.js'
+import { PuzzleControls } from './controls.js'
 
 // List of 11 common colors
-export const LABEL_COLORS = [
+export const COLOR_SCHEME = [
     "#B3DFA0", "#FE7B5F", "#96BDFE", "#62EFE9", "#DFDFDF",
     "#B9B29F", "#BBA3E1", "#FECA91", "#A3D2D8", "#DFA0BF",
     "#E6F389"
@@ -20,12 +20,8 @@ const GRID_LABELS = [
 ];
 
 let puzzle = new PuzzleGrid(GRID_LABELS.length)
-puzzle.setColorScheme(LABEL_COLORS)
+puzzle.setColorScheme(COLOR_SCHEME)
 puzzle.setLabels(GRID_LABELS)
 
-//initGrid(GRID_LABELS.length)
-//setGridColors(LABEL_COLORS)
-//setGridLabels(GRID_LABELS, LABEL_COLORS)
-
-//init_grid(CELL_SIZE, GRID_LABELS, LABEL_COLORS)
+let controls = new PuzzleControls(puzzle)
 
