@@ -65,7 +65,7 @@ export class SelectModeControls {
             edit: new EditMenuControls(puzzle),
         };
 
-        for (const buttonName in this.buttons) { // More efficient loop
+        for (const buttonName in this.buttons) {
             this.buttons[buttonName].addEventListener('click', () => this.showMenu(buttonName));
         }
     }

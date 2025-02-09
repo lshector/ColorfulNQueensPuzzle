@@ -4,7 +4,6 @@ body {
     align-items: center;
     font-family: 'Arial', sans-serif; /* A slightly more modern font stack */
     margin: 0;
-    padding: 30px; /* Increased padding */
     background-color: #f4f4f4; /* A light background color */
     color: #333; /* Darker text for better contrast */
 }
@@ -41,8 +40,8 @@ body .button.selected, /* Include <body> or a high-level parent */
     display: grid;
     grid-template-rows: repeat(var(--grid-size), 1fr); /* Key change! */
     border: 1px solid #ddd;
-    margin-top: 30px;
-    margin-bottom: 30px;
+    margin-top: 15px;
+    margin-bottom: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -182,4 +181,23 @@ body .button.selected, /* Include <body> or a high-level parent */
     border-radius: 3px; /* Rounded corners */
     text-align: center; /* Center the text */
     background-color: #fff; /* White background */
+}
+
+
+#credit-panel {
+    width: 600px;
+    text-align: right; /* Right alignment */
+    font-size: 0.8em; /* Smaller text (adjust as needed) */
+    margin-top: 10px; /* Add some spacing above if needed */
+    padding: 5px; /* Add some padding around the text */
+    color: #777; /* Slightly lighter text color */
+}
+
+#credit-panel a {
+    color: darkblue; /* Inherit color from parent */
+    text-decoration: none; /* Remove underlines from links */
+}
+
+#credit-panel a:hover {
+    text-decoration: underline; /* Add underline on hover */
 }

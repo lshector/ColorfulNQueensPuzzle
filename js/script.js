@@ -24,4 +24,4 @@ puzzle.setColorScheme(COLOR_SCHEME)
 puzzle.setLabels(GRID_LABELS)
 
 let selectModeControls = new SelectModeControls(puzzle)
-selectModeControls.buttons.play.click(); // Start in play mode
+selectModeControls.buttons.info.click();

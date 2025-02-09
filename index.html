@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Colorful N Queens Puzzle Playground</title>
+    <title>Colorful N-Queens Puzzle Playground</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <h1>Colorful N-Queens Puzzle Playground</h1>
+
     <div id="grid-container">
     </div>
 
@@ -21,7 +23,7 @@
 
     <div id="controls-panel">
         <div id="info-menu" class="menu" style="display: none;">
-            <h2>Colorful N Queens Puzzle Playground</h2>
+            <h2>About the Colorful N-Queens Puzzle</h2>
             The Colorful N-Queens puzzle (created by <a href="https://www.linkedin.com/games/queens/">LinkedIn</a> as the "Queens" game) <br>
             is a variation of the classical <a href="https://en.wikipedia.org/wiki/Eight_queens_puzzle">N-Queens problem</a>. <br>
             <br>
@@ -29,8 +31,8 @@
             - Exactly one queen is placed in each row, column, and color region. <br>
             - No two queens are adjacent to each other (including diagonally) <br>
             <br>
-            In this website, you can play the puzzle and explore different algorithms <br>
-            related to solving and/or generating the puzzle.
+            In this website, you can play the puzzle and explore different algorithms
+            related to solving and/or generating the puzzle. To start, select one of the modes above.
         </div>
 
         <div id="play-menu" class="menu" style="display: none;">
@@ -81,7 +83,14 @@
             <button id="clearGridButton" class="button">Clear Grid</button>
         </div>
     </div>
-    
+
+    <div id="credit-panel">
+        This website was developed by <a href="https://www.linkedin.com/in/hector-li-sanchez">Hector Li Sanchez</a>
+        (<a href="https://github.com/lshector/ColorfulNQueensPuzzle">Source Code</a>) |
+        <a href="https://github.com/lshector/ColorfulNQueensPuzzle/blob/main/LICENSE">License</a><br>
+        Play the original game on LinkedIn: <a href="https://www.linkedin.com/games/queens/">LinkedIn Queens</a>
+    </div>
+
     <script src="js/script.js" type="module"></script>
 </body>
 </html>
