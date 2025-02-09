@@ -6,7 +6,7 @@ export class PuzzleGrid {
         this.N = N;
         this.colorScheme = null;
         this.state = Array(this.N).fill(null).map(() => Array(this.N).fill(0));
-        this.clickResponseEnabled = false;
+        this.clickResponse = 'none';
     
         // Clear existing grid
         gridContainer.innerHTML = '';
@@ -26,9 +26,22 @@ export class PuzzleGrid {
                 cell.style.boxSizing = 'border-box'; // Include border and padding in element's total width and height
     
                 cell.addEventListener('click', () => {
-                    if (this.clickResponseEnabled) {
+                    if (this.clickResponse === 'setState') {
                         this.state[i][j] = (this.state[i][j] + 1) % 3;
                         this.refreshAppearanceCellState(i, j); // Make sure this function is defined
+                    }
+                    else if (this.clickResponse === 'setLabel') {
+                        if (this.labels[i][j] == -1) {
+                            this.labels[i][j] = 0;
+                        }
+                        else if (this.labels[i][j] == this.N-1) {
+                            this.labels[i][j] = -1;
+                        }
+                        else {
+                            this.labels[i][j] += 1;
+                        }
+
+                        this.refreshAppearanceAllLabels();
                     }
                 });
     

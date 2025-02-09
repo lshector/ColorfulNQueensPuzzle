@@ -36,7 +36,15 @@ export class SelectModeControls {
             console.error(`Menu with name ${menuName} not found.`);
         }
 
-        this.puzzle.clickResponseEnabled = menuName === 'play';
+        if (menuName === 'play') {
+            this.puzzle.clickResponse = 'setState';
+        }
+        else if (menuName === 'edit') {
+            this.puzzle.clickResponse = 'setLabel';
+        }
+        else {
+            this.puzzle.clickResponse = 'none';
+        }
     }
 
     hideAllMenus() {
