@@ -4,39 +4,44 @@ const CELL_SIZE_PX = '50px'
 
 export class PuzzleGrid {
     constructor(N) {
-        console.log(`Initializing PuzzleGrid of size ${N}`)
-        this.N = N
-        this.colorScheme = null
+        console.log(`Initializing PuzzleGrid of size ${N}`);
+        this.N = N;
+        this.colorScheme = null;
         this.state = Array(this.N).fill(null).map(() => Array(this.N).fill(0));
-        this.clickResponseEnabled = false
-
+        this.clickResponseEnabled = false;
+    
         // Clear existing grid
         gridContainer.innerHTML = '';
+    
+        // Set grid container styles *first*
+        gridContainer.style.setProperty('--grid-size', N); // Set CSS variable
+        gridContainer.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+        gridContainer.style.display = 'grid';
+        gridContainer.style.height = gridContainer.offsetWidth + "px"; // Makes it a square
 
         // Create the grid
         for (let i = 0; i < N; i++) {
             for (let j = 0; j < N; j++) {
                 const cell = document.createElement('div');
                 cell.classList.add('grid-cell');
-                cell.style.width = CELL_SIZE_PX;
-                cell.style.height = CELL_SIZE_PX;
-                cell.style.boxSizing = 'border-box';
-
+                // Remove explicit width and height setting. Grid takes care of this
+                cell.style.boxSizing = 'border-box'; // Include border and padding in element's total width and height
+    
                 cell.addEventListener('click', () => {
                     if (this.clickResponseEnabled) {
-                        // Cycle cell state on click (Empty -> X -> Queen -> Empty)
                         this.state[i][j] = (this.state[i][j] + 1) % 3;
-                        this.refreshAppearanceCellState(i, j);
+                        this.refreshAppearanceCellState(i, j); // Make sure this function is defined
                     }
                 });
-
+    
                 gridContainer.appendChild(cell);
             }
         }
-
-        // Set grid container styles after cells are added
-        gridContainer.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
-    }
+    
+        // You might want to set the height of the grid container as well to make it a square
+        gridContainer.style.height = gridContainer.offsetWidth + "px"; // Makes it a square
+    
+    }    
 
     setColorScheme(new_colorScheme) {
         if (new_colorScheme.length < this.N) {
@@ -101,19 +106,16 @@ export class PuzzleGrid {
     }
 
     refreshAppearanceCellState(row, col) {
-      const cell = gridContainer.children[row * this.N + col];
-      cell.innerHTML = "";
-      
-      if (this.state[row][col] === 1) {
-        const xMark = document.createElement('span');
-        xMark.textContent = 'x';
-        cell.appendChild(xMark);
-      } else if (this.state[row][col] === 2) {
-        const queen = document.createElement('span');
-        queen.textContent = '♛';
-        cell.appendChild(queen);
-      }
+        const cell = gridContainer.children[row * this.N + col];
+        cell.innerHTML = "";
+    
+        if (this.state[row][col] === 1) {
+            cell.textContent = 'x';
+        } else if (this.state[row][col] === 2) {
+            cell.textContent = '♛';
+        }
     }
+    
     
     clearState() {
         for (let i = 0; i < this.N; i++) {
