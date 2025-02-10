@@ -137,22 +137,21 @@ export class AlgorithmStepsWidget {
 
     updatePuzzleState(stepIndex) {
         const N = this.puzzle.N;
-        const state = Array(N).fill(null).map(() => Array(N).fill(0));
 
         if (this.steps.length === 0) {
             return;
         }
 
+        this.puzzle.clearState();
         for (let i = 0; i <= stepIndex; i++) {
             const step = this.steps[i];
             if (step.action === "Place Queen") {
-                state[step.row][step.col] = STATE_QUEEN;
+                this.puzzle.placeQueenFromSolver(step.row, step.col);
             } else if (step.action === "Backtrack") {
-                state[step.row][step.col] = STATE_EMPTY;
+                this.puzzle.removeQueenFromSolver(step.row, step.col);
             }
         }
 
-        this.puzzle.setState(state);
         this.puzzle.refreshAppearanceAllCells();
     }
 }

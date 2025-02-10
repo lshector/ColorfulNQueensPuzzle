@@ -309,7 +309,39 @@ export class PuzzleGrid {
         this.conflictingCells = recalculateConflictingCells(this.N, this.state, this.labels, this.conflictingCells);
     }
     
+    placeQueenFromSolver(row, col) {
+        const cell = `${row},${col}`
+        this.placedQueens.add(cell);
     
+        this.state[row][col] = STATE_QUEEN;
+
+        const affectedCells = getAffectedCellsFromPlacingQueenAt(this.N, this.labels, row, col);
+        for (const affectedCell of affectedCells) {
+            const [r, c] = affectedCell.split(",").map(Number);
+            this.constraintCount[r][c] += 1;
+
+            if (this.constraintCount[r][c] === 1) {
+                this.state[r][c] = STATE_MARKED;
+            }
+        }
+    }
+
+    removeQueenFromSolver(row, col) {
+        const cell = `${row},${col}`;
+        this.placedQueens.delete(cell);
+        
+        this.state[row][col] = STATE_EMPTY;
+
+        const affectedCells = getAffectedCellsFromPlacingQueenAt(this.N, this.labels, row, col);
+        for (const cell of affectedCells) {
+            const [r, c] = cell.split(",").map(Number);
+            this.constraintCount[r][c] -= 1;
+
+            if (this.constraintCount[r][c] === 0) {
+                this.state[r][c] = STATE_EMPTY;
+            }
+        }
+    }
 
     checkIfSolved() {
         if (this.placedQueens.size >= this.N && this.conflictingCells.size === 0) {
