@@ -128,51 +128,57 @@ export class AlgorithmStepsWidget {
     }
 
     updatePuzzleState(stepIndex) {
+        if (this.steps.length === 0) return;
+    
         const N = this.puzzle.N;
-
-        if (this.steps.length === 0) {
-            return;
-        }
-
-        let stepsText = this.stepsText;
-        function appendLineToSteps(newLine) {
-            stepsText.value += (stepsText.value ? '\n' : '') + newLine; // Add newline if text exists
+        const stepsText = this.stepsText;
+        stepsText.value = ""; // Clear steps text
+    
+        const appendLine = (newLine) => {
+            stepsText.value += (stepsText.value ? '\n' : '') + newLine;
             stepsText.scrollTop = stepsText.scrollHeight;
-        }
-        stepsText.value = "";
-
+        };
+    
         this.puzzle.clearState();
+    
         for (let i = 0; i <= stepIndex; i++) {
             const step = this.steps[i];
             this.puzzle.highlightedCells = new Set();
-            if (step.action === "Place Queen") {
-                const updatedCells = this.puzzle.placeQueenFromSolver(step.row, step.col);
-                this.puzzle.highlightedCells = updatedCells;
-                this.puzzle.refreshAppearanceAllLabels();
-                appendLineToSteps(`Placed queen at (${step.row}, ${step.col})`);
-            } else if (step.action === "Backtrack") {
-                const updatedCells = this.puzzle.removeQueenFromSolver(step.row, step.col);
-                this.puzzle.highlightedCells = updatedCells;
-                this.puzzle.refreshAppearanceAllLabels();
-                appendLineToSteps(`Backtracking by removing queen from (${step.row}, ${step.col})`);
-            } else if (step.action === "addConstraintToRows") {
-                const updatedCells = this.puzzle.addConstraintToRows(step.rows, step.excludeColors);
-                this.puzzle.highlightedCells = updatedCells;
-                this.puzzle.refreshAppearanceAllLabels();
-                appendLineToSteps(`Marking all cells in row(s) ${step.rows} excluding colors: ${step.excludeColors}`);
-            } else if (step.action === "addConstraintToColumns") {
-                const updatedCells = this.puzzle.addConstraintToColumns(step.cols, step.excludeColors);
-                this.puzzle.highlightedCells = updatedCells;
-                this.puzzle.refreshAppearanceAllLabels();
-                appendLineToSteps(`Marking all cells in col(s) ${step.cols} excluding colors: ${step.excludeColors}`);
-            } else if (step.action === "addConstraintToCell") {
-                const updatedCells = this.puzzle.addConstraintToCell(step.row, step.col);
-                this.puzzle.highlightedCells = updatedCells;
-                this.puzzle.refreshAppearanceAllLabels();
-                appendLineToSteps(`Marking cell (${step.row}, ${step.col})`);
+    
+            const actionHandlers = {
+                "Place Queen": () => this.puzzle.placeQueenFromSolver(step.row, step.col),
+                "Backtrack": () => this.puzzle.removeQueenFromSolver(step.row, step.col),
+                "addConstraintToRows": () => this.puzzle.addConstraintToRows(step.rows, step.excludeColors),
+                "addConstraintToColumns": () => this.puzzle.addConstraintToColumns(step.cols, step.excludeColors),
+                "addConstraintToCell": () => this.puzzle.addConstraintToCell(step.row, step.col),
+            };
+    
+            if (step.action in actionHandlers) {
+              const updatedCells = actionHandlers[step.action]();
+              this.puzzle.highlightedCells = updatedCells;
+              this.puzzle.refreshAppearanceAllLabels();
+              appendLine(this.getActionDescription(step)); // See helper function below
             }
         }
-
+    
         this.puzzle.refreshAppearanceAllCells();
+    }
+    
+    // Helper function to generate action descriptions
+    getActionDescription(step) {
+        switch (step.action) {
+            case "Place Queen":
+                return `Placed queen at (${step.row}, ${step.col})`;
+            case "Backtrack":
+                return `Backtracking by removing queen from (${step.row}, ${step.col})`;
+            case "addConstraintToRows":
+                return `Marking all cells in row(s) ${step.rows} excluding colors: ${step.excludeColors}`;
+            case "addConstraintToColumns":
+                return `Marking all cells in col(s) ${step.cols} excluding colors: ${step.excludeColors}`;
+            case "addConstraintToCell":
+                return `Marking cell (${step.row}, ${step.col})`;
+            default:
+                return ""; // Or handle unknown actions appropriately
+        }
     }
 }
