@@ -172,7 +172,14 @@ class SolveMenuControls extends MenuControls {
         this.puzzle.clearState();
 
         if (algorithm === 'backtracking') {
-            solvePuzzleBacktracking(this.puzzle);
+            const result = solvePuzzleBacktracking(this.puzzle.N, this.puzzle.labels);
+
+            if (result.solved) {
+                console.log("Solution found:", result.solution);
+                this.puzzle.setSolution(result.solution);
+            } else {
+                console.log("No solution found.");
+            }
         } else if (algorithm === 'deductive') {
             solvePuzzleDeductive(this.puzzle);
         }

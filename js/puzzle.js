@@ -1,9 +1,9 @@
 const gridContainer = document.getElementById('grid-container');
 
-const NUM_STATES = 3;
-const STATE_EMPTY = 0;
-const STATE_MARKED = 1;
-const STATE_QUEEN = 2;
+export const NUM_STATES = 3;
+export const STATE_EMPTY = 0;
+export const STATE_MARKED = 1;
+export const STATE_QUEEN = 2;
 
 export class PuzzleGrid {
     constructor(N) {
@@ -153,6 +153,13 @@ export class PuzzleGrid {
     }
 
     
+    refreshAppearanceAllCells() {
+        for (let i = 0; i < this.N; i++) {
+            for (let j = 0; j < this.N; j++) {
+                this.refreshAppearanceCellState(i, j);
+            }
+        }
+    }
 
     refreshAppearanceCellState(row, col) {
         const cell = gridContainer.children[row * this.N + col];
@@ -173,7 +180,14 @@ export class PuzzleGrid {
             }
         }
 
+        if (this.placedQueens.size >= this.N) {
+            if (!this.placedQueens.has(`${row},${col}`)) {
+                return;
+            }
+        }
+
         const newState = (this.state[row][col] + 1) % NUM_STATES;
+        
         this.state[row][col] = newState
         this.refreshAppearanceCellState(row, col);
 
@@ -185,6 +199,7 @@ export class PuzzleGrid {
         }
         
         this.refreshAppearanceAllLabels();
+        this.checkIfSolved(); // Call the solution check function
     }
 
     updateCellLabelFromClick(row, col) {
@@ -253,8 +268,6 @@ export class PuzzleGrid {
                 this.conflictingCells.add(affectedCell);
             }
         }
-    
-        this.checkIfSolved(); // Call the solution check function
     }
     
     removeQueenFromClick(row, col) {
@@ -312,7 +325,7 @@ export class PuzzleGrid {
 
     checkIfSolved() {
         if (this.placedQueens.size >= this.N && this.conflictingCells.size === 0) {
-            alert("Congrats! You've solved the puzzle.");
+            console.log("Congrats! You've solved the puzzle.");
         }
     }
 
@@ -360,5 +373,15 @@ export class PuzzleGrid {
         }
     
         return affected;
+    }
+
+    setSolution(solution) {
+        this.clearState();
+        for (const cell of solution) {
+            const [r, c] = cell.split(",").map(Number);
+            this.state[r][c] = STATE_QUEEN;
+            this.placedQueens.add(cell);
+            this.refreshAppearanceCellState(r, c);
+        }
     }
 }
