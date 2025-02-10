@@ -38,11 +38,11 @@ function deduceSingleRowCol(puzzle, steps) {
     const deductionActions = {
       color_in_single_row: (label) => {
         const [row] = emptyCellsPerColor[label].values().next().value;
-        return [puzzle.addConstraintToRow(row, [label]), row];
+        return [puzzle.addConstraintToRows(row, [label]), row];
       },
       color_in_single_column: (label) => {
         const [, col] = emptyCellsPerColor[label].values().next().value;
-        return [puzzle.addConstraintToColumn(col, [label]), col];
+        return [puzzle.addConstraintToColumns(col, [label]), col];
       },
     };
 
@@ -58,10 +58,10 @@ function deduceSingleRowCol(puzzle, steps) {
           if (numUpdatedCells > 0) {
             numDeductions += 1;
             if (name === 'color_in_single_row') {
-                steps.push({ action: 'addConstraintToRow', row: key, excludeColors: [label] });
+                steps.push({ action: 'addConstraintToRows', rows: key, excludeColors: [label] });
             }
             else if (name === 'color_in_single_col') {
-                steps.push({ action: 'addConstraintToColumn', col: key, excludeColors: [label] });
+                steps.push({ action: 'addConstraintToColumns', cols: key, excludeColors: [label] });
             }
 
             console.debug(`Deduced rule '${name}' for color ${label}`);
@@ -75,7 +75,95 @@ function deduceSingleRowCol(puzzle, steps) {
 }
 
 function deduceUsingColorExclusivity(puzzle, steps) {
-    return 0;
+  let numDeductions = 0;
+  const N = puzzle.N;
+
+  // Map each color to the set of rows and columns where it has empty cells
+  const emptyCellsPerColor = puzzle.getEmptyCellsPerColor();
+  const colorToEmptyRows = {};
+  const colorToEmptyColumns = {};
+
+  for (let label = 0; label < N; label++) {
+    const cells = emptyCellsPerColor[label];
+    colorToEmptyRows[label] = new Set();
+    colorToEmptyColumns[label] = new Set();
+    for (const [row, _] of cells) {
+      colorToEmptyRows[label].add(row);
+    }
+    for (const [_, col] of cells) {
+      colorToEmptyColumns[label].add(col);
+    }
+  }
+
+  // Convert sets to intervals and filter out empty sets
+  const colorRowIntervals = {};
+  const colorColumnIntervals = {};
+
+  for (let color = 0; color < N; color++) {
+    if (colorToEmptyRows[color].size > 0) {
+        const rows = Array.from(colorToEmptyRows[color]).sort((a,b) => a-b);
+        colorRowIntervals[color] = [rows[0], rows[rows.length-1]];
+    }
+      if (colorToEmptyColumns[color].size > 0) {
+        const cols = Array.from(colorToEmptyColumns[color]).sort((a,b) => a-b);
+        colorColumnIntervals[color] = [cols[0], cols[cols.length-1]];
+    }
+  }
+
+  function processColorGroups(colorIntervals, cellGroupType, groupSize) {
+    for (let start = 0; start <= N - groupSize; start++) {
+      const end = start + groupSize;
+      const containedIntervals = [];
+
+      for (const color in colorIntervals) {
+        const interval = colorIntervals[color];
+        if (interval[0] >= start && interval[1] <= end - 1) {
+          containedIntervals.push(parseInt(color)); // Parse color to int
+        }
+      }
+
+      if (containedIntervals.length !== groupSize) {
+        continue;
+      }
+
+      // Successful deduction
+      let updatedCells = [];
+      let newStep = null;
+
+      if (cellGroupType === "Rows") {
+          const rowsToUpdate = [];
+          for (let row = start; row < end; row++) {
+              rowsToUpdate.push(row);
+          }
+          newStep = { action: 'addConstraintToRows', rows: rowsToUpdate, excludeColors: containedIntervals };
+          updatedCells = updatedCells.concat(puzzle.addConstraintToRows(rowsToUpdate, containedIntervals));
+      } else { // cellGroupType === "Columns"
+          const colsToUpdate = [];
+          for (let col = start; col < end; col++) {
+              colsToUpdate.push(col);
+          }
+          newStep = { action: 'addConstraintToColumns', cols: colsToUpdate, excludeColors: containedIntervals };
+          updatedCells = updatedCells.concat(puzzle.addConstraintToColumns(colsToUpdate, containedIntervals));
+      }
+    
+      // Log the deduction for rows or columns
+      const numUpdatedCells = updatedCells.length;
+      if (numUpdatedCells > 0) {
+        numDeductions++;
+        steps.push(newStep);
+        console.debug(`${cellGroupType} ${start}-${end - 1} must place in a queen in colors ${containedIntervals}`);
+        console.debug(`   Gained information about ${numUpdatedCells} cells`);
+      }
+    }
+  }
+
+  // Iterate over group sizes from 2 to N-1
+  for (let groupSize = 2; groupSize < N; groupSize++) {
+    processColorGroups(colorRowIntervals, "Rows", groupSize);
+    processColorGroups(colorColumnIntervals, "Cols", groupSize);
+  }
+
+  return numDeductions;
 }
 
 function deduceInvalidPlacements(puzzle, steps) {

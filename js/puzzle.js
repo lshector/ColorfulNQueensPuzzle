@@ -396,61 +396,82 @@ export class PuzzleGrid {
         }
     }
 
-    addConstraintToRow(row, excludeLabels) {
+    addConstraintToRows(rows, excludeLabels) {
         let updatedCells = [];
-
-        for (let j = 0; j < this.N; ++j) {
-            const cellColor = this.labels[row][j];
-            const L = excludeLabels.length;
-            let excludeCell = false;
-            for (let idx = 0; idx < L; ++idx) {
-                if (excludeLabels[idx] == cellColor) {
-                    excludeCell = true;
-                }
-            }
-
-            if (excludeCell) {
-                continue;
-            }
-
-            this.constraintCount[row][j] += 1;
-
-            if (this.constraintCount[row][j] === 1) {
-                this.state[row][j] = STATE_MARKED;
-                updatedCells.push([`${row},${j}`])
-            }
+        
+        if (typeof rows === 'number') {  // Check if rows is a single number
+            rows = [rows]; // Wrap it in an array to make it iterable
+        } else if (!Array.isArray(rows)) {
+          console.error("rows must be a number or an array of numbers.");
+          return []; // Return empty array to avoid issues
         }
 
-        return updatedCells;
-    }
-
-    addConstraintToColumn(col, excludeLabels) {
-        let updatedCells = [];
-
-        for (let i = 0; i < this.N; ++i) {
-            const cellColor = this.labels[i][col];
-            const L = excludeLabels.length;
-            let excludeCell = false;
-            for (let idx = 0; idx < L; ++idx) {
-                if (excludeLabels[idx] == cellColor) {
-                    excludeCell = true;
+        for (const row of rows) {
+            for (let j = 0; j < this.N; ++j) {
+                const cellColor = this.labels[row][j];
+                const L = excludeLabels.length;
+                let excludeCell = false;
+                for (let idx = 0; idx < L; ++idx) {
+                    if (excludeLabels[idx] === cellColor) {
+                        excludeCell = true;
+                        break; // Exit inner loop early if a match is found
+                    }
+                }
+    
+                if (excludeCell) {
+                    continue;
+                }
+    
+                this.constraintCount[row][j] += 1;
+    
+                if (this.constraintCount[row][j] === 1) {
+                    this.state[row][j] = STATE_MARKED;
+                    updatedCells.push([`${row},${j}`]);
                 }
             }
-
-            if (excludeCell) {
-                continue;
-            }
-
-            this.constraintCount[i][col] += 1;
-
-            if (this.constraintCount[i][col] === 1) {
-                this.state[i][col] = STATE_MARKED;
-                updatedCells.push([`${i},${col}`])
-            }
         }
-
+    
         return updatedCells;
     }
+    
+
+    addConstraintToColumns(cols, excludeLabels) {
+        let updatedCells = [];
+    
+        if (typeof cols === 'number') {
+            cols = [cols];
+        } else if (!Array.isArray(cols)) {
+          console.error("cols must be a number or an array of numbers.");
+          return [];
+        }
+    
+        for (const col of cols) {
+            for (let i = 0; i < this.N; ++i) {
+                const cellColor = this.labels[i][col];
+                const L = excludeLabels.length;
+                let excludeCell = false;
+                for (let idx = 0; idx < L; ++idx) {
+                    if (excludeLabels[idx] === cellColor) {
+                        excludeCell = true;
+                        break; // Exit inner loop early
+                    }
+                }
+    
+                if (excludeCell) {
+                    continue;
+                }
+    
+                this.constraintCount[i][col] += 1;
+    
+                if (this.constraintCount[i][col] === 1) {
+                    this.state[i][col] = STATE_MARKED;
+                    updatedCells.push([`${i},${col}`]);
+                }
+            }
+        }
+    
+        return updatedCells;
+    }    
 
     addConstraintToCell(row, col) {
         this.constraintCount[row][col] += 1;

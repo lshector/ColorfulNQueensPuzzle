@@ -150,12 +150,12 @@ export class AlgorithmStepsWidget {
             } else if (step.action === "Backtrack") {
                 this.puzzle.removeQueenFromSolver(step.row, step.col);
                 appendLineToSteps(`Backtracking by removing queen from (${step.row}, ${step.col})`);
-            } else if (step.action === "addConstraintToRow") {
-                this.puzzle.addConstraintToRow(step.row, step.excludeColors);
-                appendLineToSteps(`Marking all cells in row ${step.row} excluding colors: ${step.excludeColors}`);
-            } else if (step.action === "addConstraintToColumn") {
-                this.puzzle.addConstraintToColumn(step.col, step.excludeColors);
-                appendLineToSteps(`Marking all cells in col ${step.col} excluding colors: ${step.excludeColors}`);
+            } else if (step.action === "addConstraintToRows") {
+                this.puzzle.addConstraintToRows(step.rows, step.excludeColors);
+                appendLineToSteps(`Marking all cells in row(s) ${step.rows} excluding colors: ${step.excludeColors}`);
+            } else if (step.action === "addConstraintToColumns") {
+                this.puzzle.addConstraintToColumns(step.cols, step.excludeColors);
+                appendLineToSteps(`Marking all cells in col(s) ${step.cols} excluding colors: ${step.excludeColors}`);
             } else if (step.action === "addConstraintToCell") {
                 this.puzzle.addConstraintToCell(step.row, step.col);
                 appendLineToSteps(`Marking cell (${step.row}, ${step.col})`);
