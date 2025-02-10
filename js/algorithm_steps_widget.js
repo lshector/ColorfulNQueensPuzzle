@@ -1,5 +1,3 @@
-import { STATE_EMPTY, STATE_QUEEN } from "./puzzle.js"
-
 export class AlgorithmStepsWidget {
     constructor(containerId, steps, puzzle) {
         this.containerId = containerId;
@@ -31,8 +29,9 @@ export class AlgorithmStepsWidget {
                 this.playButton = this.container.querySelector('.play-button');
                 this.plusButton = this.container.querySelector('.plus-button');
                 this.minusButton = this.container.querySelector('.minus-button');
+                this.stepsText = this.container.querySelector('.algorithm-steps-text');
 
-                if (!this.slider || !this.sliderValue || !this.playButton || !this.plusButton || !this.minusButton) {
+                if (!this.slider || !this.sliderValue || !this.playButton || !this.plusButton || !this.minusButton || !this.stepsText) {
                     console.error("Required elements not found in container:", this.containerId);
                     return Promise.reject("Elements not found"); // Reject if elements missing
 
@@ -47,13 +46,6 @@ export class AlgorithmStepsWidget {
         this.initializeSlider();
         this.initializePlayButton();
     }
-
-    initialize() {
-        this.updateSliderMax();
-        this.initializeSlider();
-        this.initializePlayButton();
-    }
-
 
     updateSliderValue(new_value) {
         this.slider.value = new_value;
@@ -142,19 +134,31 @@ export class AlgorithmStepsWidget {
             return;
         }
 
+        let stepsText = this.stepsText;
+        function appendLineToSteps(newLine) {
+            stepsText.value += (stepsText.value ? '\n' : '') + newLine; // Add newline if text exists
+            stepsText.scrollTop = stepsText.scrollHeight;
+        }
+        stepsText.value = "";
+
         this.puzzle.clearState();
         for (let i = 0; i <= stepIndex; i++) {
             const step = this.steps[i];
             if (step.action === "Place Queen") {
                 this.puzzle.placeQueenFromSolver(step.row, step.col);
+                appendLineToSteps(`Placed queen at (${step.row}, ${step.col})`);
             } else if (step.action === "Backtrack") {
                 this.puzzle.removeQueenFromSolver(step.row, step.col);
+                appendLineToSteps(`Backtracking by removing queen from (${step.row}, ${step.col})`);
             } else if (step.action === "addConstraintToRow") {
                 this.puzzle.addConstraintToRow(step.row, step.excludeColors);
+                appendLineToSteps(`Marking all cells in row ${step.row} excluding colors: ${step.excludeColors}`);
             } else if (step.action === "addConstraintToColumn") {
                 this.puzzle.addConstraintToColumn(step.col, step.excludeColors);
+                appendLineToSteps(`Marking all cells in col ${step.col} excluding colors: ${step.excludeColors}`);
             } else if (step.action === "addConstraintToCell") {
                 this.puzzle.addConstraintToCell(step.row, step.col);
+                appendLineToSteps(`Marking cell (${step.row}, ${step.col})`);
             }
         }
 

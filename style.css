@@ -183,7 +183,17 @@ body .button.selected, /* Include <body> or a high-level parent */
     background-color: #fff; /* White background */
 }
 
-
+.algorithm-steps-widget .algorithm-steps-text {
+    width: 100%; /* Or a specific width */
+    height: 100px; /* Adjust height as needed */
+    border: 1px solid #ccc;
+    padding: 5px;
+    box-sizing: border-box; /* Prevents padding from increasing the overall width */
+    resize: none;
+    font-family: monospace; /* Optional: Use a monospace font for code-like text */
+    white-space: pre-wrap; /* Preserve whitespace and wrap text */
+  }
+  
 #credit-panel {
     width: 600px;
     text-align: right; /* Right alignment */
