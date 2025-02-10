@@ -18,6 +18,7 @@ export class PuzzleGrid {
         this.constraintCount = Array(this.N).fill(null).map(() => Array(this.N).fill(0));
         this.conflictingCells = new Set();
         this.placedQueens = new Set();
+        this.placedQueensColors = new Set();
     
         // Clear existing grid
         gridContainer.innerHTML = '';
@@ -54,6 +55,21 @@ export class PuzzleGrid {
     
     }
 
+    getEmptyCells() {
+        const emptyCells = [];
+    
+        for (let row = 0; row < this.N; row++) {
+          for (let col = 0; col < this.N; col++) {
+            if (this.state[row][col] === STATE_EMPTY) {
+              emptyCells.push([row, col]);
+            }
+          }
+        }
+    
+        return emptyCells;
+      }
+
+    
     getEmptyCellsPerColor() {
         const emptyCellsPerColor = {};
         
@@ -268,6 +284,7 @@ export class PuzzleGrid {
         }
 
         this.placedQueens.clear();
+        this.placedQueensColors.clear();
         this.conflictingCells.clear();
         this.refreshAppearanceAllLabels();
     }
@@ -308,6 +325,7 @@ export class PuzzleGrid {
     placeQueenFromClick(row, col) {
         const cell = `${row},${col}`;
         this.placedQueens.add(cell);
+        this.placedQueensColors.add(this.labels[row][col]);
     
         const affectedCells = getAffectedCellsFromPlacingQueenAt(this.N, this.labels, row, col);
         for (const affectedCell of affectedCells) {
@@ -324,6 +342,7 @@ export class PuzzleGrid {
     removeQueenFromClick(row, col) {
         const cell = `${row},${col}`;
         this.placedQueens.delete(cell);
+        this.placedQueensColors.delete(this.labels[row][col]);
         
         const affectedCells = getAffectedCellsFromPlacingQueenAt(this.N, this.labels, row, col);
         for (const cell of affectedCells) {
@@ -339,6 +358,7 @@ export class PuzzleGrid {
         const cell = `${row},${col}`
 
         this.placedQueens.add(cell);
+        this.placedQueensColors.add(this.labels[row][col]);
         this.state[row][col] = STATE_QUEEN;
 
         let updatedCells = [];
@@ -361,6 +381,7 @@ export class PuzzleGrid {
     removeQueenFromSolver(row, col) {
         const cell = `${row},${col}`;
         this.placedQueens.delete(cell);
+        this.placedQueensColors.delete(this.labels[row][col]);
         
         this.state[row][col] = STATE_EMPTY;
 
@@ -429,6 +450,14 @@ export class PuzzleGrid {
         }
 
         return updatedCells;
+    }
+
+    addConstraintToCell(row, col) {
+        this.constraintCount[row][col] += 1;
+
+        if (this.constraintCount[row][col] === 1) {
+            this.state[row][col] = STATE_MARKED;
+        }
     }
 
     isSolved() {

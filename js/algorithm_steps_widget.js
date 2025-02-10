@@ -153,6 +153,8 @@ export class AlgorithmStepsWidget {
                 this.puzzle.addConstraintToRow(step.row, step.excludeColors);
             } else if (step.action === "addConstraintToColumn") {
                 this.puzzle.addConstraintToColumn(step.col, step.excludeColors);
+            } else if (step.action === "addConstraintToCell") {
+                this.puzzle.addConstraintToCell(step.row, step.col);
             }
         }
 

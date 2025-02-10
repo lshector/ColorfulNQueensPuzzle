@@ -75,11 +75,37 @@ function deduceSingleRowCol(puzzle, steps) {
 }
 
 function deduceUsingColorExclusivity(puzzle, steps) {
-
+    return 0;
 }
 
 function deduceInvalidPlacements(puzzle, steps) {
+    let numDeductions = 0;
+    const emptyCells = puzzle.getEmptyCells();
 
+    for (const cell of emptyCells) {
+      const [row, col] = cell;
+      let isInvalidPlacement = false;
+      puzzle.placeQueenFromSolver(row, col);
+      const newEmptyCells = puzzle.getEmptyCellsPerColor();
+
+      for (let i = 0; i < puzzle.N; i++) {
+        if (newEmptyCells[i].size === 0 && !puzzle.placedQueensColors.has(i)) { // Use .size for Set length
+          console.debug(`Placing a queen at (${row}, ${col}) would result in no valid moves for color ${i}`);
+          isInvalidPlacement = true;
+          break; // Important: Exit the inner loop once invalidity is found
+        }
+      }
+
+      puzzle.removeQueenFromSolver(row, col);
+
+      if (isInvalidPlacement) {
+        steps.push({ action: 'addConstraintToCell', row, col });
+        puzzle.addConstraintToCell(row, col);
+        numDeductions += 1;
+      }
+    }
+
+    return numDeductions;
 }
 
 function deduce(puzzle, steps) {
@@ -113,6 +139,7 @@ export function solvePuzzleDeductive(puzzle) {
     }
 
     if (puzzle.isSolved()) {
+        let solution = puzzle.placedQueens;
         return { solution, solved: true, steps };
     } else {
         return { solution: null, solved: false, steps };
