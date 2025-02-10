@@ -1,19 +1,24 @@
 import { getAffectedCellsFromPlacingQueenAt, recalculateConflictingCells } from "./logic.js";
 
-const gridContainer = document.getElementById('grid-container');
-
 export const NUM_STATES = 3;
 export const STATE_EMPTY = 0;
 export const STATE_MARKED = 1;
 export const STATE_QUEEN = 2;
 
+// List of 11 common colors
+export const DEFAULT_COLOR_SCHEME = [
+    "#B3DFA0", "#FE7B5F", "#96BDFE", "#62EFE9", "#DFDFDF",
+    "#B9B29F", "#BBA3E1", "#FECA91", "#A3D2D8", "#DFA0BF",
+    "#E6F389"
+];
+
 export class PuzzleGrid {
     constructor(N) {
         console.log(`Initializing PuzzleGrid of size ${N}`);
         this.N = N;
-        this.colorScheme = null;
-        this.labels = Array(this.N).fill(null).map(() => Array(this.N).fill(0));
-        this.state = Array(this.N).fill(null).map(() => Array(this.N).fill(0));
+        this.colorScheme = DEFAULT_COLOR_SCHEME;
+        this.labels = Array(this.N).fill(null).map(() => Array(this.N).fill(-1));
+        this.state = Array(this.N).fill(null).map(() => Array(this.N).fill(STATE_EMPTY));
         this.currentMode = 'none';
         this.constraintCount = Array(this.N).fill(null).map(() => Array(this.N).fill(0));
         this.highlightedCells = new Set();
@@ -21,13 +26,14 @@ export class PuzzleGrid {
         this.placedQueensColors = new Set();
     
         // Clear existing grid
-        gridContainer.innerHTML = '';
+        this.gridContainer = document.getElementById('grid-container');
+        this.gridContainer.innerHTML = '';
     
         // Set grid container styles *first*
-        gridContainer.style.setProperty('--grid-size', N); // Set CSS variable
-        gridContainer.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
-        gridContainer.style.display = 'grid';
-        gridContainer.style.height = gridContainer.offsetWidth + "px"; // Makes it a square
+        this.gridContainer.style.setProperty('--grid-size', N); // Set CSS variable
+        this.gridContainer.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+        this.gridContainer.style.display = 'grid';
+        this.gridContainer.style.height = this.gridContainer.offsetWidth + "px"; // Makes it a square
 
         // Create the grid
         for (let i = 0; i < N; i++) {
@@ -46,12 +52,12 @@ export class PuzzleGrid {
                     }
                 });
     
-                gridContainer.appendChild(cell);
+                this.gridContainer.appendChild(cell);
             }
         }
     
         // You might want to set the height of the grid container as well to make it a square
-        gridContainer.style.height = gridContainer.offsetWidth + "px"; // Makes it a square
+        this.gridContainer.style.height = this.gridContainer.offsetWidth + "px"; // Makes it a square
     
     }
 
@@ -67,8 +73,27 @@ export class PuzzleGrid {
         }
     
         return emptyCells;
-      }
+    }
 
+    hasUnpaintedCells() {
+        console.log(this.getUnpaintedCells().length)
+        return this.getUnpaintedCells().length > 0;
+    }
+
+    getUnpaintedCells() {
+        const unpaintedCells = [];
+    
+        for (let row = 0; row < this.N; row++) {
+          for (let col = 0; col < this.N; col++) {
+            if (this.labels[row][col] === -1) {
+                unpaintedCells.push([row, col]);
+            }
+          }
+        }
+        
+    
+        return unpaintedCells;
+    }
     
     getEmptyCellsPerColor() {
         const emptyCellsPerColor = {};
@@ -106,6 +131,16 @@ export class PuzzleGrid {
         this.colorScheme = new_colorScheme
     }
 
+    setLabel(row, col, label) {
+        this.labels[row][col] = label;
+        this.refreshAppearanceAllLabels();
+
+        let updatedCells = new Set();
+        updatedCells.add(`${row},${col}`);
+
+        return updatedCells;
+    }
+
     setLabels(new_labels) {
         if (this.colorScheme == null) {
             console.error(`Can't set puzzle labels because no color scheme is set`)
@@ -134,6 +169,8 @@ export class PuzzleGrid {
         } 
 
         this.refreshAppearanceAllLabels()
+
+        return new Set();
     }
 
     setCellColor(cell, row, col) {
@@ -170,7 +207,7 @@ export class PuzzleGrid {
         // Update puzzle appearance
         for (let i = 0; i < this.N; i++) {
             for (let j = 0; j < this.N; j++) {
-                const cell = gridContainer.children[i * this.N + j];
+                const cell = this.gridContainer.children[i * this.N + j];
                 const currentLabel = this.labels[i][j];
 
                 this.setCellColor(cell, i, j);
@@ -224,7 +261,7 @@ export class PuzzleGrid {
     }
 
     refreshAppearanceCellState(row, col) {
-        const cell = gridContainer.children[row * this.N + col];
+        const cell = this.gridContainer.children[row * this.N + col];
         cell.innerHTML = "";
     
         if (this.state[row][col] === STATE_MARKED) {

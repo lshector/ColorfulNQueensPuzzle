@@ -1,4 +1,6 @@
+import { solvePuzzleDeductive } from "./deductive.js";
 import { STATE_EMPTY, STATE_QUEEN } from "./puzzle.js"
+import { enableLogging, disableLogging } from "./logger.js"
 
 export function isSafe(N, state, labels, row, col) {
     // Check column conflicts
@@ -20,10 +22,12 @@ export function isSafe(N, state, labels, row, col) {
 
     // Check color conflicts
     const color = labels[row][col];
-    for (let i = 0; i < N; i++) {
-        for (let j = 0; j < N; j++) {
-            if ((i !== row || j !== col) && state[i][j] === STATE_QUEEN && labels[i][j] === color) {
-                return false;
+    if (color !== -1) {
+        for (let i = 0; i < N; i++) {
+            for (let j = 0; j < N; j++) {
+                if ((i !== row || j !== col) && state[i][j] === STATE_QUEEN && labels[i][j] === color) {
+                    return false;
+                }
             }
         }
     }
@@ -110,11 +114,14 @@ export function recalculateConflictingCells(N, state, labels, conflictingCells) 
     return newConflictingCells;
 }
 
-function getUnpaintedCellCandidates(puzzle) {
+export function getUnpaintedCellCandidates(puzzle) {
     const paintedCellsPerColor = puzzle.getEmptyCellsPerColor();
     const unpaintedCellCandidates = {};
 
-    for (let i = 0; i < paintedCellsPerColor.length; i++) {
+    console.log("Painted Cells shit")
+    console.log(paintedCellsPerColor)
+
+    for (let i = 0; i < puzzle.N; i++) {
         const paintedCells = paintedCellsPerColor[i];
         const candidates = new Set(); // Use a Set to avoid duplicates
 
@@ -122,19 +129,19 @@ function getUnpaintedCellCandidates(puzzle) {
             const [row, col] = cell; // Destructure the cell tuple
 
             if (row > 0 && puzzle.labels[row - 1][col] === -1) {
-                candidates.add([row - 1, col]);
+                candidates.add(`${row - 1},${col}`);
             }
 
-            if (row < puzzle.size - 1 && puzzle.labels[row + 1][col] === -1) {
-                candidates.add([row + 1, col]);
+            if (row < puzzle.N - 1 && puzzle.labels[row + 1][col] === -1) {
+                candidates.add(`${row + 1},${col}`);
             }
 
             if (col > 0 && puzzle.labels[row][col - 1] === -1) {
-                candidates.add([row, col - 1]);
+                candidates.add(`${row},${col - 1}`);
             }
 
-            if (col < puzzle.size - 1 && puzzle.labels[row][col + 1] === -1) {
-                candidates.add([row, col + 1]);
+            if (col < puzzle.N - 1 && puzzle.labels[row][col + 1] === -1) {
+                candidates.add(`${row},${col + 1}`);
             }
         }
 
@@ -143,20 +150,24 @@ function getUnpaintedCellCandidates(puzzle) {
         }
     }
 
+    console.log(unpaintedCellCandidates)
+
     return unpaintedCellCandidates;
 }
 
-function paintSingleCell(puzzle, rng, candidates, renderer, attempt, eventLog) {
+export function paintSingleCell(puzzle, rng, candidates, attempt, steps) {
     while (Object.keys(candidates).length > 0) { // Check if candidates is empty
-        console.debug(`There are ${Object.keys(candidates).length} possible selections`);
+        let numCandidates = Object.keys(candidates).length;
+
+        console.debug(`There are ${numCandidates} possible selections`);
         console.debug(`Possible selections:\n${JSON.stringify(candidates, null, 2)}`); // Use JSON.stringify for better formatting
 
-        // Random Selection
         const colorPick = rng.choice(Object.keys(candidates)); // Get a random key (color)
-        const cellPick = rng.choice(candidates[colorPick].length); // Get random index in the color's candidates array
+        const candidateCells = candidates[colorPick]; // Get the array of candidate cells for that color
+        const cellPick = rng.choice(candidateCells); // Choose a random cell *from the array*
 
         // Fill the selected cell with the selected color
-        const [row, col] = candidates[colorPick][cellPick];
+        const [row, col] = cellPick.split(',').map(Number);
         puzzle.labels[row][col] = parseInt(colorPick); // colorPick is a string, parse to int
         console.debug(
             `Random selection: Color ${colorPick}, ` +
@@ -165,20 +176,16 @@ function paintSingleCell(puzzle, rng, candidates, renderer, attempt, eventLog) {
 
         // Display algorithm step
         attempt.numPaintedCells++;
-        eventLog.push(["paint", [row, col], parseInt(colorPick)]); // Use array for event log
-        if (renderer) {
-            renderer.updatePuzzle(puzzle);
-            renderer.display({ waitTimeMs: DisplayTimesInMs.ALG_STEP }); // Use object for display options
-        }
+        const label = parseInt(colorPick);
+        steps.push({ action: "paintCell", row, col, label });
 
         // Try to solve the puzzle using the deductive solver
-        console.disable(); // Replace logging.disable()
-        const solver = new DeductiveSolver({ earlyReturnCell: [row, col] }); // Assuming DeductiveSolver is a class
-        const solutions = solver.solve(new PuzzleMoveHandler(puzzle));
-        console.enable(); // Replace logging.disable(logging.NOTSET) - if such a method exists
+        disableLogging();
+        const deductiveResult = solvePuzzleDeductive(puzzle);
+        enableLogging();
 
-        if (solutions.length > 0) {
-            return true; // Successfully painted the cell
+        if (deductiveResult.solved) {
+            return true; // successfully painted the cell
         }
 
         console.debug("Couldn't solve puzzle using deduction. Backtracking");
@@ -192,11 +199,7 @@ function paintSingleCell(puzzle, rng, candidates, renderer, attempt, eventLog) {
 
         // Display algorithm step
         attempt.numUnpaintedCells++;
-        eventLog.push(["unpaint", [row, col]]);
-        if (renderer) {
-            renderer.updatePuzzle(puzzle);
-            renderer.display({ waitTimeMs: DisplayTimesInMs.ALG_STEP });
-        }
+        steps.push({ action: "unpaintCell", row, col });
     }
 
     return false; // Failed to paint the cell

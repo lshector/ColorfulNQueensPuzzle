@@ -1,3 +1,9 @@
+import { PuzzleGrid } from "./puzzle.js"
+import { solvePuzzleBacktracking } from "./backtracking.js"
+import { solvePuzzleDeductive } from "./deductive.js"
+import { getUnpaintedCellCandidates, paintSingleCell } from "./logic.js"
+import { enableLogging, disableLogging } from "./logger.js"
+
 class Stats {
     constructor() {
         this.totalDuration = null;
@@ -20,15 +26,17 @@ class Stats {
     }
 }
 
-async function generatePuzzleSingleAttempt(puzzle, rng, eventLog) {  // Renderer removed
+async function generatePuzzleSingleAttempt(puzzle, rng, steps) {
     const attempt = new Stats.GenerationStats();
 
     // Generate a valid placement for queens using solvePuzzleBacktracking
-    const backtrackingResult = solvePuzzleBacktracking(puzzle.size, puzzle.labels);
+    disableLogging();
+    const backtrackingResult = solvePuzzleBacktracking(puzzle.N, puzzle.labels);
     if (!backtrackingResult.solved) {
         console.error("Backtracking failed to find a solution.");
-        return [null, attempt];
+        return [false, attempt];
     }
+    enableLogging();
 
     const solution = backtrackingResult.solution.map(coordStr => {
       const [row, col] = coordStr.split(',').map(Number);
@@ -36,59 +44,68 @@ async function generatePuzzleSingleAttempt(puzzle, rng, eventLog) {  // Renderer
     });
 
     // Assign a color to each placed queen
-    for (let i = 0; i < puzzle.size; i++) {
-        const [row, col] = solution[i];
-        puzzle.labels[row][col] = i;
-        eventLog.push(["paint", [row, col], i]);
+    for (let label = 0; label < puzzle.N; label++) {
+        const [row, col] = solution[label];
+        puzzle.labels[row][col] = label;
+        steps.push({ action: "paintCell", row, col, label });
     }
 
     // Iteratively assign colors to each remaining cell
     while (true) {
-        const candidates = getUnpaintedCellCandidates(new PuzzleMoveHandler(puzzle), puzzle);
+        puzzle.clearState();
+        const candidates = getUnpaintedCellCandidates(puzzle);
 
         if (Object.keys(candidates).length === 0) {
+            console.log(puzzle.labels)
             console.info("Painted all puzzle cells!");
             break;
         }
 
-        const painted = await paintSingleCell(puzzle, rng, candidates, attempt, eventLog); // Removed renderer
+        const painted = await paintSingleCell(puzzle, rng, candidates, attempt, steps);
         if (!painted) {
             console.info("Exhausted all possible selections to paint a cell");
-            return [null, attempt];
+            return [false, attempt];
         }
     }
 
-    if (puzzle.hasUnpaintedCells) {
+    if (puzzle.hasUnpaintedCells()) {
         throw new Error("Puzzle should not have unpainted cells at this point.");
     }
 
     // Make sure that the puzzle is solvable by deduction
+    disableLogging();
     const deductionResult = solvePuzzleDeductive(puzzle);
+    enableLogging();
 
     if (!deductionResult.solved) {
         console.warn("Generated puzzle was complete but could not be solved by deduction");
-        return [null, attempt];
+        return [false, attempt];
     }
 
-    return [puzzle, attempt];
+    return [true, attempt];
 }
 
 export class PuzzleGenerator {
-    async run(N, seed = "colorful-n-queens", maxNumAttempts = 1000, display = null) {
+    async run(N, seed = "colorful-n-queens", maxNumAttempts = 1) {
         const startTime = Date.now();
         console.info(`Generating puzzle of size ${N}`);
-        const eventLog = [];
+        const steps = [];
 
         const stats = new Stats();
         let numAttempts = 0;
         let generatedPuzzle = false;
+        let attempt = null;
+        let puzzle = null;
 
-        while (!generatedPuzzle && numAttempts < maxNumAttempts) {
+        steps.push({ action: "Begin" });
+        while ((generatedPuzzle === false) && numAttempts < maxNumAttempts) {
             console.info(`Seeding RNG using seed string '${seed}'`); // Log the current seed
             const seedHash = this.hashString(seed);
             console.debug(`Seed string hash: ${seedHash}`);
 
-            const myrng = seedrandom(seedHash.toString()); // Initialize RNG *inside* run
+            steps.push({ action: "clearLabels" });
+
+            const myrng = new Math.seedrandom(seedHash.toString()); // Initialize RNG *inside* run
             const rng = {
                 choice: (arrOrObj) => {
                     if (Array.isArray(arrOrObj)) {
@@ -104,13 +121,11 @@ export class PuzzleGenerator {
                 }
             };
 
-            const puzzle = Puzzle.emptyPuzzle(N);
-            const renderer = display === null ? null : new PuzzleRenderer(puzzle, display);
-
             numAttempts++;
             console.info(`>>>>> Starting attempt ${numAttempts} to generate a valid puzzle`);
             const attemptStartTime = Date.now();
-            [generatedPuzzle, attempt] = await generatePuzzleSingleAttempt(puzzle, rng, renderer, eventLog);
+            puzzle = new PuzzleGrid(N);
+            [generatedPuzzle, attempt] = await generatePuzzleSingleAttempt(puzzle, rng, steps);
             const attemptEndTime = Date.now();
             attempt.duration = (attemptEndTime - attemptStartTime) / 1000;
             console.info(`Attempt ${numAttempts} took ${attempt.duration} seconds`);
@@ -118,13 +133,14 @@ export class PuzzleGenerator {
             attempt.seed = seed; // Store the current seed in stats
             stats.attempts.push(attempt);
 
-            if (!generatedPuzzle) {
+            if (generatedPuzzle === false) {
                 seed = myrng().toString(); // Generate a *new* seed string for the next attempt
                 console.debug(`Setting seed string to '${seed}' for next run`);
             }
         }
+        steps.push({ action: "End" });
 
-        if (!generatedPuzzle) {
+        if (generatedPuzzle === false) {
             throw new Error(`Failed to generate a valid puzzle after ${maxNumAttempts} attempts.`);
         }
 
@@ -134,7 +150,7 @@ export class PuzzleGenerator {
         stats.totalDuration = (endTime - startTime) / 1000; // Convert to seconds
         console.info(`Total puzzle generation time: ${stats.totalDuration} seconds`);
 
-        return [puzzle, stats, eventLog];
+        return { puzzle: puzzle, stats: stats, steps: steps};
     }
 
     hashString(str) { // Example hash function (you can use a better one)

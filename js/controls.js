@@ -124,19 +124,18 @@ class GenerateMenuControls extends MenuControls {
         const generator = new PuzzleGenerator();
 
         try {
-            const [puzzle, stats, eventLog] = await generator.run(N, seed, maxAttempts);
+            const result = await generator.run(N, seed, maxAttempts);
 
-            console.log("Puzzle generated successfully:", puzzle);
-            console.log("Stats:", stats);
-            console.log("Event Log:", eventLog);
+            console.log("Puzzle generated successfully:", result.puzzle);
+            console.log("Stats:", result.stats);
+            //console.log("Event Log:", eventLog);
+            this.puzzle = result.puzzle;
 
-            this.steps_widget.setSteps(eventLog);
-            this.steps_widget.render();
+            console.log(result)
 
-            this.puzzle.labels = puzzle.labels;
-            if (this.puzzle.display) {
-                this.puzzle.display();
-            }
+            console.log(result)
+
+            this.steps_widget = new AlgorithmStepsWidget("alg-steps-container-generate", result.steps, this.puzzle);
 
         } catch (error) {
             console.error("Puzzle generation failed:", error);

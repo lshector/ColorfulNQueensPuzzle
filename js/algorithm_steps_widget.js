@@ -140,6 +140,7 @@ export class AlgorithmStepsWidget {
         };
     
         this.puzzle.clearState();
+        this.puzzle.clearLabels();
     
         const handleBegin = () => {
             return new Set();
@@ -163,6 +164,9 @@ export class AlgorithmStepsWidget {
                 "removeConstraintFromRows": () => this.puzzle.removeConstraintFromRows(step.rows),
                 "removeConstraintFromColumns": () => this.puzzle.removeConstraintFromColumns(step.cols),
                 "removeConstraintFromCell": () => this.puzzle.removeConstraintFromCell(step.row, step.col),
+                "paintCell": () => this.puzzle.setLabel(step.row, step.col, step.label),
+                "unpaintCell": () => this.puzzle.setLabel(step.row, step.col, -1),
+                "clearLabels": () => this.puzzle.clearLabels(),
                 "Done": () => handleDone()
             };
     
@@ -198,6 +202,10 @@ export class AlgorithmStepsWidget {
                 return `Removing constraints from column(s) ${step.cols}`;
             case "removeConstraintFromCell":
                 return `Removing constraint from cell (${step.row}, ${step.col})`;
+            case "paintCell":
+                return `Painting cell (${step.row}, ${step.col}) with color ${step.label}`;
+            case "unpaintCell":
+                return `Removing label from cell (${step.row}, ${step.col})`;
             case "Done":
                 return `Completed algorithm`;
             default:
