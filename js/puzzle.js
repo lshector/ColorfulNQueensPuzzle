@@ -77,6 +77,11 @@ export class PuzzleGrid {
         this.refreshAppearanceAllLabels()
     }
 
+    setState(new_state) {
+        this.state = new_state;
+        this.refreshAppearanceAllCells();
+    }
+
     clearLabels() {
         for (let i = 0; i < this.N; i++) {
             for (let j = 0; j < this.N; j++) {

@@ -47,7 +47,6 @@ export function solvePuzzleBacktracking(N, labels) {
                     }
                 }
             }
-            steps.push({ action: "Solution Found", solution });
             return solution;
         }
 
