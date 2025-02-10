@@ -51,8 +51,6 @@ export function solvePuzzleBacktracking(N, labels) {
         }
 
         for (let col = 0; col < N; col++) {
-            steps.push({ action: "Checking", row, col });
-
             if (isSafe(N, state, labels, row, col)) {
                 state[row][col] = STATE_QUEEN;
                 steps.push({ action: "Place Queen", row, col });
@@ -67,7 +65,6 @@ export function solvePuzzleBacktracking(N, labels) {
             }
         }
 
-        steps.push({ action: "No Safe Position", row });
         return null;
     }
 
