@@ -1,3 +1,5 @@
+import { getAffectedCellsFromPlacingQueenAt, recalculateConflictingCells } from "./logic.js";
+
 const gridContainer = document.getElementById('grid-container');
 
 export const NUM_STATES = 3;
@@ -281,7 +283,7 @@ export class PuzzleGrid {
         const cell = `${row},${col}`;
         this.placedQueens.add(cell);
     
-        const affectedCells = this.getAffectedCellsFromPlacingQueenAt(row, col);
+        const affectedCells = getAffectedCellsFromPlacingQueenAt(this.N, this.labels, row, col);
         for (const affectedCell of affectedCells) {
             const [r, c] = affectedCell.split(",").map(Number);
             this.constraintCount[r][c] += 1;
@@ -297,105 +299,22 @@ export class PuzzleGrid {
         const cell = `${row},${col}`;
         this.placedQueens.delete(cell);
         
-        const affectedCells = this.getAffectedCellsFromPlacingQueenAt(row, col);
+        const affectedCells = getAffectedCellsFromPlacingQueenAt(this.N, this.labels, row, col);
         for (const cell of affectedCells) {
             const [r, c] = cell.split(",").map(Number);
             this.constraintCount[r][c] -= 1;
         }
 
         this.conflictingCells.delete(cell);
-        this.recalculateConflictingCells();
+        this.conflictingCells = recalculateConflictingCells(this.N, this.state, this.labels, this.conflictingCells);
     }
     
-    recalculateConflictingCells() {
-        if (this.conflictingCells.size === 0) return; // Early exit if no conflicts
     
-        const newConflictingCells = new Set();
-        for (const cellStr of this.conflictingCells) {
-            const [r, c] = cellStr.split(",").map(Number);
-    
-            let inConflict = false;
-    
-            const affectedCells = this.getAffectedCellsFromPlacingQueenAt(r, c);
-            for (const affectedCell of affectedCells) {
-                const [ar, ac] = affectedCell.split(",").map(Number);
-                if (this.state[ar][ac] === STATE_QUEEN) {
-                    inConflict = true;
-                    break;
-                }
-            }
-    
-            if (!inConflict) {
-                const color = this.labels[r][c];
-                for (let i = 0; i < this.N; i++) {
-                    for (let j = 0; j < this.N; j++) {
-                        if ((i !== r || j !== c) && this.state[i][j] === STATE_QUEEN && this.labels[i][j] === color) {
-                            inConflict = true;
-                            break;
-                        }
-                    }
-                    if (inConflict) break;
-                }
-            }
-    
-            if (inConflict) {
-                newConflictingCells.add(cellStr);
-            }
-        }
-    
-        this.conflictingCells = newConflictingCells;
-    }
 
     checkIfSolved() {
         if (this.placedQueens.size >= this.N && this.conflictingCells.size === 0) {
             console.log("Congrats! You've solved the puzzle.");
         }
-    }
-
-    getAffectedCellsFromPlacingQueenAt(row, col) {
-        const affected = new Set()
-    
-        // Collect affected cells (row)
-        for (let j = 0; j < this.N; j++) {
-            if (j !== col) {
-                affected.add(`${row},${j}`); // Use strings as unique keys
-            }
-        }
-    
-        // Collect affected cells (column)
-        for (let i = 0; i < this.N; i++) {
-            if (i !== row) {
-                affected.add(`${i},${col}`);
-            }
-        }
-    
-        // Collect affected cells (diagonal)
-        const directions = [
-            [-1, -1], [-1, 0], [-1, 1],
-            [0, -1],           [0, 1],
-            [1, -1],  [1, 0],  [1, 1]
-        ];
-    
-        for (const [dr, dc] of directions) {
-            const nr = row + dr;
-            const nc = col + dc;
-    
-            if (nr >= 0 && nr < this.N && nc >= 0 && nc < this.N) {
-                affected.add(`${nr},${nc}`);
-            }
-        }
-    
-        // Collect affected cells (color)
-        const color = this.labels[row][col];
-        for (let i = 0; i < this.N; i++) {
-            for (let j = 0; j < this.N; j++) {
-                if ((i !== row || j !== col) && this.labels[i][j] === color) {
-                    affected.add(`${i},${j}`);
-                }
-            }
-        }
-    
-        return affected;
     }
 
     setSolution(solution) {

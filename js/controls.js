@@ -134,7 +134,6 @@ class SolveMenuControls extends MenuControls {
 
             if (result.solved) {
                 console.log("Solution found:", result.solution);
-                this.puzzle.setSolution(result.solution);
             } else {
                 console.log("No solution found.");
             }
