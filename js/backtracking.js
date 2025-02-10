@@ -3,8 +3,7 @@ import { isSafe } from "./logic.js";
 
 export function solvePuzzleBacktracking(N, labels) {
     const steps = [];
-    steps.push({ action: "Begin" });
-
+    
     function solveBacktrackingRecursive(state, row) {
         if (row === N) {
             const solution = [];
@@ -36,8 +35,10 @@ export function solvePuzzleBacktracking(N, labels) {
         return null;
     }
 
+    steps.push({ action: "Begin" });
     const state = Array(N).fill(null).map(() => Array(N).fill(0));
     const solution = solveBacktrackingRecursive(state, 0);
+    steps.push({ action: "Done" });
 
     if (solution) {
         return { solution, solved: true, steps };

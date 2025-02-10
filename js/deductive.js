@@ -216,8 +216,8 @@ function deduce(puzzle, steps) {
 
 export function solvePuzzleDeductive(puzzle) {
     const steps = [];
+    
     steps.push({ action: "Begin" });
-
     while (puzzle.isSolved() === false) {
         const numDeductions = deduce(puzzle, steps);
         if (numDeductions === 0) {
@@ -225,6 +225,7 @@ export function solvePuzzleDeductive(puzzle) {
             break;
         }
     }
+    steps.push({ action: "Done" });
 
     if (puzzle.isSolved()) {
         let solution = puzzle.placedQueens;

@@ -141,11 +141,20 @@ export class AlgorithmStepsWidget {
     
         this.puzzle.clearState();
     
+        const handleBegin = () => {
+            return new Set();
+        }
+
+        const handleDone = () => {
+            return new Set();
+        }
+
         for (let i = 0; i <= stepIndex; i++) {
             const step = this.steps[i];
             this.puzzle.highlightedCells = new Set();
     
             const actionHandlers = {
+                "Begin": () => handleBegin(),
                 "Place Queen": () => this.puzzle.placeQueenFromSolver(step.row, step.col),
                 "Backtrack": () => this.puzzle.removeQueenFromSolver(step.row, step.col),
                 "addConstraintToRows": () => this.puzzle.addConstraintToRows(step.rows, step.excludeColors),
@@ -154,6 +163,7 @@ export class AlgorithmStepsWidget {
                 "removeConstraintFromRows": () => this.puzzle.removeConstraintFromRows(step.rows),
                 "removeConstraintFromColumns": () => this.puzzle.removeConstraintFromColumns(step.cols),
                 "removeConstraintFromCell": () => this.puzzle.removeConstraintFromCell(step.row, step.col),
+                "Done": () => handleDone()
             };
     
             if (step.action in actionHandlers) {
@@ -170,6 +180,8 @@ export class AlgorithmStepsWidget {
     // Helper function to generate action descriptions
     getActionDescription(step) {
         switch (step.action) {
+            case "Begin":
+                return `Starting algorithm`;
             case "Place Queen":
                 return `Placed queen at (${step.row}, ${step.col})`;
             case "Backtrack":
@@ -186,6 +198,8 @@ export class AlgorithmStepsWidget {
                 return `Removing constraints from column(s) ${step.cols}`;
             case "removeConstraintFromCell":
                 return `Removing constraint from cell (${step.row}, ${step.col})`;
+            case "Done":
+                return `Completed algorithm`;
             default:
                 return "";
         }

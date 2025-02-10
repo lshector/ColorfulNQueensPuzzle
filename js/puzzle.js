@@ -136,7 +136,7 @@ export class PuzzleGrid {
         this.refreshAppearanceAllLabels()
     }
 
-    setCellColor(cell, row, col) { // No need to pass colorScheme, highlightedCells, darkenColor as arguments
+    setCellColor(cell, row, col) {
         const cellKey = `${row},${col}`;
         
         if (this.labels[row][col] >= 0 && this.labels[row][col] < this.colorScheme.length) {
@@ -151,8 +151,10 @@ export class PuzzleGrid {
                 }
             }
             else if (this.currentMode === 'solve') {
-                if (!this.highlightedCells.has(cellKey)) {
-                    baseColor = this.darkenColor(baseColor, 0.50); // Darken by 50%
+                if (this.highlightedCells.has(cellKey)) {
+                    //
+                } else if (this.highlightedCells.size > 0) {
+                    baseColor = this.darkenColor(baseColor, 0.5); // Darken by 50%
                 }
             }
 
