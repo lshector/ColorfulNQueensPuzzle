@@ -1,5 +1,122 @@
 import { solvePuzzleBacktracking, solvePuzzleDeductive } from "./solvers.js"
 
+function initializeSlider(containerId, steps, puzzle) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.error("Container not found:", containerId);
+        return;
+    }
+
+    const slider = container.querySelector('.step-slider');
+    const sliderValue = container.querySelector('.slider-value');
+
+    if (!slider || !sliderValue) {
+        console.error("Slider or slider value not found in container:", containerId);
+        return;
+    }
+
+    slider.addEventListener('input', () => {
+        const stepIndex = parseInt(slider.value);
+        sliderValue.value = stepIndex;
+        puzzle.updateState(stepIndex, steps);
+    });
+
+        // Add event listeners for + and - buttons
+    const plusButton = container.querySelector('.plus-button');
+    const minusButton = container.querySelector('.minus-button');
+
+    plusButton.addEventListener('click', () => {
+        const stepIndex = parseInt(slider.value);
+        const maxStep = steps.length -1;
+        const newStepIndex = Math.min(stepIndex + 1, maxStep);
+        slider.value = newStepIndex;
+        sliderValue.value = newStepIndex;
+        puzzle.updateState(newStepIndex, steps); // Call to update puzzle state
+    });
+
+    minusButton.addEventListener('click', () => {
+        const stepIndex = parseInt(slider.value);
+        const newStepIndex = Math.max(stepIndex - 1, 0);
+        slider.value = newStepIndex;
+        sliderValue.value = newStepIndex;
+        puzzle.updateState(newStepIndex, steps); // Call to update puzzle state
+    });
+
+}
+
+function updateSliderMax(steps, containerId) {
+    const container = document.getElementById(containerId); // Get the container
+    if (!container) {
+        console.error("Container element not found:", containerId);
+        return;
+    }
+
+    const slider = container.querySelector('.step-slider'); // Find slider WITHIN container
+    const sliderValue = container.querySelector('.slider-value'); // Find value WITHIN container
+
+    if (!slider || !sliderValue) {
+        console.error("Slider or slider value element not found within container:", containerId);
+        return;
+    }
+
+    if (steps && steps.length > 0) {
+        slider.max = steps.length - 1;
+        slider.value = 0;
+        sliderValue.value = 0;
+    } else {
+        slider.max = 0;
+        slider.value = 0;
+        sliderValue.value = 0;
+    }
+}
+function initializePlayButton(containerId, puzzle, steps, stepIncrementPercent = 0.01, frameDelay = 100) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.error("Container not found:", containerId);
+        return;
+    }
+
+    const playButton = container.querySelector('.play-button');
+    const slider = container.querySelector('.step-slider');
+    const sliderValue = container.querySelector('.slider-value');
+
+    if (!playButton || !slider || !sliderValue) {
+        console.error("Play button, slider, or value not found in container:", containerId);
+        return;
+    }
+
+    let playing = false;
+    let intervalId;
+
+    playButton.addEventListener('click', () => {
+        playing = !playing; // Toggle playing state
+
+        if (playing) {
+            playButton.textContent = "⏸"; // Pause symbol
+            let currentStep = parseInt(slider.value);
+            const totalSteps = steps.length - 1;
+
+            intervalId = setInterval(() => {
+                const stepIncrement = Math.ceil(totalSteps * stepIncrementPercent); // Calculate increment
+                currentStep = Math.min(currentStep + stepIncrement, totalSteps); // Use calculated increment
+
+                slider.value = currentStep;
+                sliderValue.value = currentStep;
+                puzzle.updateState(currentStep, steps);
+
+                if (currentStep === totalSteps) {
+                    clearInterval(intervalId);
+                    playing = false;
+                    playButton.textContent = "▶";
+                }
+            }, frameDelay); // Use frameDelay here
+        } else {
+            clearInterval(intervalId);
+            playButton.textContent = "▶"; // Play symbol
+        }
+    });
+}
+
 function createAlgorithmStepsWidget(containerId) {
     const container = document.getElementById(containerId);
     if (!container) {
@@ -180,6 +297,10 @@ class SolveMenuControls extends MenuControls {
             } else {
                 console.log("No solution found.");
             }
+
+            updateSliderMax(result.steps, "alg-steps-container-solve");
+            initializePlayButton("alg-steps-container-solve", this.puzzle, result.steps)
+            initializeSlider("alg-steps-container-solve", result.steps, this.puzzle);
         } else if (algorithm === 'deductive') {
             solvePuzzleDeductive(this.puzzle);
         }

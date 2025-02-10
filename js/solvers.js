@@ -34,6 +34,8 @@ export function isSafe(N, state, labels, row, col) {
 }
 
 export function solvePuzzleBacktracking(N, labels) {
+    const steps = [];
+
     function solveBacktrackingRecursive(state, row) {
         if (row === N) {
             const solution = [];
@@ -44,32 +46,38 @@ export function solvePuzzleBacktracking(N, labels) {
                     }
                 }
             }
-            return solution; // Return the solution array
+            steps.push({ action: "Solution Found", solution });
+            return solution;
         }
 
         for (let col = 0; col < N; col++) {
+            steps.push({ action: "Checking", row, col });
+
             if (isSafe(N, state, labels, row, col)) {
                 state[row][col] = STATE_QUEEN;
+                steps.push({ action: "Place Queen", row, col });
+
                 const recursiveSolution = solveBacktrackingRecursive(state, row + 1);
                 if (recursiveSolution) {
-                    return recursiveSolution; // Solution found!
+                    return recursiveSolution;
                 } else {
                     state[row][col] = STATE_EMPTY;
+                    steps.push({ action: "Backtrack", row, col });
                 }
             }
         }
 
-        return null; // No safe position found in this row
+        steps.push({ action: "No Safe Position", row });
+        return null;
     }
 
-    // Initialize the state (empty board)
-    const state = Array(N).fill(null).map(() => Array(N).fill(0)); // STATE_EMPTY is 0
+    const state = Array(N).fill(null).map(() => Array(N).fill(0));
     const solution = solveBacktrackingRecursive(state, 0);
 
     if (solution) {
-        return { solution: solution, solved: true };
+        return { solution, solved: true, steps };
     } else {
-        return { solution: null, solved: false };
+        return { solution: null, solved: false, steps };
     }
 }
 

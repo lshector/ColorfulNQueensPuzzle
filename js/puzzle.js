@@ -172,6 +172,24 @@ export class PuzzleGrid {
         }
     }
     
+    updateState(stepIndex, steps) {
+        // 1. Reconstruct the board state up to the given stepIndex
+        const state = Array(this.N).fill(null).map(() => Array(this.N).fill(0)); // Start with empty board
+
+        for (let i = 0; i <= stepIndex; i++) {
+            const step = steps[i];
+            if (step.action === "Place Queen") {
+                state[step.row][step.col] = STATE_QUEEN;
+            } else if (step.action === "Backtrack") {
+                state[step.row][step.col] = STATE_EMPTY;
+            }
+        }
+
+        // 2. Update the visual representation of the puzzle
+        this.state = state;
+        this.refreshAppearanceAllCells();
+    }
+
     updateCellStateFromClick(row, col) {
         if (this.conflictingCells.size > 0) {
             // return early if the cell is not one of the highlighted cells
