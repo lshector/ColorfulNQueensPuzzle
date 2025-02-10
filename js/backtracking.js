@@ -45,7 +45,3 @@ export function solvePuzzleBacktracking(N, labels) {
         return { solution: null, solved: false, steps };
     }
 }
-
-export function solvePuzzleDeductive(puzzle) {
-    console.log("Solving puzzle using deduction...");
-}

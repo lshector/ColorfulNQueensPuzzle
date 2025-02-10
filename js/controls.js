@@ -1,4 +1,5 @@
-import { solvePuzzleBacktracking, solvePuzzleDeductive } from "./solvers.js"
+import { solvePuzzleBacktracking } from "./backtracking.js"
+import { solvePuzzleDeductive } from "./deductive.js"
 import { AlgorithmStepsWidget } from "./algorithm_steps_widget.js"
 
 export class SelectModeControls {
