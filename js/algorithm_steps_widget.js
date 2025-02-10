@@ -149,6 +149,10 @@ export class AlgorithmStepsWidget {
                 this.puzzle.placeQueenFromSolver(step.row, step.col);
             } else if (step.action === "Backtrack") {
                 this.puzzle.removeQueenFromSolver(step.row, step.col);
+            } else if (step.action === "addConstraintToRow") {
+                this.puzzle.addConstraintToRow(step.row, step.excludeColors);
+            } else if (step.action === "addConstraintToColumn") {
+                this.puzzle.addConstraintToColumn(step.col, step.excludeColors);
             }
         }
 

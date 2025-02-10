@@ -61,7 +61,7 @@ export class PuzzleGrid {
         for (let i = 0; i < this.N; i++) {
             emptyCellsPerColor[i] = new Set();
         }
-        
+
         for (let row = 0; row < this.N; row++) {
           for (let col = 0; col < this.N; col++) {
             const label = this.labels[row][col];
@@ -76,7 +76,6 @@ export class PuzzleGrid {
           }
         }
     
-        console.log(emptyCellsPerColor)
         return emptyCellsPerColor;
       }
     
@@ -374,6 +373,62 @@ export class PuzzleGrid {
                 this.state[r][c] = STATE_EMPTY;
             }
         }
+    }
+
+    addConstraintToRow(row, excludeLabels) {
+        let updatedCells = [];
+
+        for (let j = 0; j < this.N; ++j) {
+            const cellColor = this.labels[row][j];
+            const L = excludeLabels.length;
+            let excludeCell = false;
+            for (let idx = 0; idx < L; ++idx) {
+                if (excludeLabels[idx] == cellColor) {
+                    excludeCell = true;
+                }
+            }
+
+            if (excludeCell) {
+                continue;
+            }
+
+            this.constraintCount[row][j] += 1;
+
+            if (this.constraintCount[row][j] === 1) {
+                this.state[row][j] = STATE_MARKED;
+                updatedCells.push([`${row},${j}`])
+            }
+        }
+
+        return updatedCells;
+    }
+
+    addConstraintToColumn(col, excludeLabels) {
+        let updatedCells = [];
+
+        for (let i = 0; i < this.N; ++i) {
+            const cellColor = this.labels[i][col];
+            const L = excludeLabels.length;
+            let excludeCell = false;
+            for (let idx = 0; idx < L; ++idx) {
+                if (excludeLabels[idx] == cellColor) {
+                    excludeCell = true;
+                }
+            }
+
+            if (excludeCell) {
+                continue;
+            }
+
+            this.constraintCount[i][col] += 1;
+
+            if (this.constraintCount[i][col] === 1) {
+                this.state[i][col] = STATE_MARKED;
+                updatedCells.push([`${i},${col}`])
+            }
+        }
+
+        return updatedCells;
     }
 
     isSolved() {
