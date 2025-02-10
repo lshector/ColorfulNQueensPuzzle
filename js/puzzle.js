@@ -14,7 +14,7 @@ export class PuzzleGrid {
         this.colorScheme = null;
         this.labels = Array(this.N).fill(null).map(() => Array(this.N).fill(0));
         this.state = Array(this.N).fill(null).map(() => Array(this.N).fill(0));
-        this.clickResponse = 'none';
+        this.currentMode = 'none';
         this.constraintCount = Array(this.N).fill(null).map(() => Array(this.N).fill(0));
         this.highlightedCells = new Set();
         this.placedQueens = new Set();
@@ -38,10 +38,10 @@ export class PuzzleGrid {
                 cell.style.boxSizing = 'border-box'; // Include border and padding in element's total width and height
     
                 cell.addEventListener('click', () => {
-                    if (this.clickResponse === 'setState') {
+                    if (this.currentMode === 'play') {
                         this.updateCellStateFromClick(i, j);
                     }
-                    else if (this.clickResponse === 'setLabel') {
+                    else if (this.currentMode === 'edit') {
                         this.updateCellLabelFromClick(i, j);
                     }
                 });
@@ -136,31 +136,42 @@ export class PuzzleGrid {
         this.refreshAppearanceAllLabels()
     }
 
+    setCellColor(cell, row, col) { // No need to pass colorScheme, highlightedCells, darkenColor as arguments
+        const cellKey = `${row},${col}`;
+        
+        if (this.labels[row][col] >= 0 && this.labels[row][col] < this.colorScheme.length) {
+            let baseColor = this.colorScheme[this.labels[row][col]];
+            let baseTextColor = 'black';
+
+            if (this.currentMode === 'play') {
+                if (this.highlightedCells.has(cellKey)) {
+                    baseTextColor = '#8B0000'; // Conflicting cell text red
+                } else if (this.highlightedCells.size > 0) {
+                    baseColor = this.darkenColor(baseColor, 0.5); // Darken by 50%
+                }
+            }
+            else if (this.currentMode === 'solve') {
+                if (!this.highlightedCells.has(cellKey)) {
+                    baseColor = this.darkenColor(baseColor, 0.50); // Darken by 50%
+                }
+            }
+
+            cell.style.color = baseTextColor;
+            cell.style.backgroundColor = baseColor;
+        } else {
+            cell.style.backgroundColor = 'white';
+            cell.style.color = 'black'; // Reset color to black
+        }
+    }
+    
     refreshAppearanceAllLabels() {
         // Update puzzle appearance
         for (let i = 0; i < this.N; i++) {
             for (let j = 0; j < this.N; j++) {
                 const cell = gridContainer.children[i * this.N + j];
                 const currentLabel = this.labels[i][j];
-                const cellKey = `${i},${j}`; // Key for highlightedCells Set
 
-                // Color assignment
-                const label = this.labels[i][j];
-                if (label >= 0 && label < this.colorScheme.length) { // Check bounds
-                    let baseColor = this.colorScheme[label];
-                    if (this.highlightedCells.has(cellKey)) {
-                        cell.style.color = '#8B0000'; // Conflicting cell text red
-                    } else if (this.highlightedCells.size > 0){
-                        baseColor = this.darkenColor(baseColor, 0.5); // Darken by 50%
-                        cell.style.color = 'black'; //Reset color to black
-                    } else {
-                        cell.style.color = 'black'; //Reset color to black
-                    }
-                    cell.style.backgroundColor = baseColor;
-                } else {
-                    cell.style.backgroundColor = 'white';
-                    cell.style.color = 'black'; //Reset color to black
-                }
+                this.setCellColor(cell, i, j);
 
                 // Set default border
                 cell.style.border = '2px solid black';
@@ -489,6 +500,66 @@ export class PuzzleGrid {
 
         return updatedCells;
     }
+
+    removeConstraintFromRows(rows) {
+        let updatedCells = new Set();
+    
+        if (typeof rows === 'number') {
+            rows = [rows];
+        } else if (!Array.isArray(rows)) {
+            console.error("rows must be a number or an array of numbers.");
+            return updatedCells;
+        }
+    
+        for (const row of rows) {
+            for (let j = 0; j < this.N; ++j) {
+                this.constraintCount[row][j] -= 1;
+    
+                if (this.constraintCount[row][j] === 0) {
+                    this.state[row][j] = STATE_EMPTY; // Or whatever your empty state is
+                    updatedCells.add(`${row},${j}`);
+                }
+            }
+        }
+    
+        return updatedCells;
+    }
+    
+    removeConstraintFromColumns(cols) {
+        let updatedCells = new Set();
+    
+        if (typeof cols === 'number') {
+            cols = [cols];
+        } else if (!Array.isArray(cols)) {
+            console.error("cols must be a number or an array of numbers.");
+            return updatedCells;
+        }
+    
+        for (const col of cols) {
+            for (let i = 0; i < this.N; ++i) {
+                this.constraintCount[i][col] -= 1;
+    
+                if (this.constraintCount[i][col] === 0) {
+                    this.state[i][col] = STATE_EMPTY;
+                    updatedCells.add(`${i},${col}`);
+                }
+            }
+        }
+    
+        return updatedCells;
+    }
+    
+    removeConstraintFromCell(row, col) {
+        let updatedCells = new Set();
+        this.constraintCount[row][col] -= 1;
+    
+        if (this.constraintCount[row][col] === 0) {
+            this.state[row][col] = STATE_EMPTY;
+            updatedCells.add(`${row},${col}`);
+        }
+    
+        return updatedCells;
+    }    
 
     isSolved() {
         return this.placedQueens.size >= this.N && this.highlightedCells.size === 0;

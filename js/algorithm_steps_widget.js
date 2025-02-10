@@ -151,17 +151,20 @@ export class AlgorithmStepsWidget {
                 "addConstraintToRows": () => this.puzzle.addConstraintToRows(step.rows, step.excludeColors),
                 "addConstraintToColumns": () => this.puzzle.addConstraintToColumns(step.cols, step.excludeColors),
                 "addConstraintToCell": () => this.puzzle.addConstraintToCell(step.row, step.col),
+                "removeConstraintFromRows": () => this.puzzle.removeConstraintFromRows(step.rows),
+                "removeConstraintFromColumns": () => this.puzzle.removeConstraintFromColumns(step.cols),
+                "removeConstraintFromCell": () => this.puzzle.removeConstraintFromCell(step.row, step.col),
             };
     
             if (step.action in actionHandlers) {
-              const updatedCells = actionHandlers[step.action]();
-              this.puzzle.highlightedCells = updatedCells;
-              this.puzzle.refreshAppearanceAllLabels();
-              appendLine(this.getActionDescription(step)); // See helper function below
+                const updatedCells = actionHandlers[step.action]();
+                this.puzzle.highlightedCells = updatedCells;
+                this.puzzle.refreshAppearanceAllLabels();
+                appendLine(this.getActionDescription(step));
             }
         }
     
-        this.puzzle.refreshAppearanceAllCells();
+        this.puzzle.refreshAppearanceAllCells();    
     }
     
     // Helper function to generate action descriptions
@@ -177,8 +180,14 @@ export class AlgorithmStepsWidget {
                 return `Marking all cells in col(s) ${step.cols} excluding colors: ${step.excludeColors}`;
             case "addConstraintToCell":
                 return `Marking cell (${step.row}, ${step.col})`;
+            case "removeConstraintFromRows": // New descriptions
+                return `Removing constraints from row(s) ${step.rows}`;
+            case "removeConstraintFromColumns":
+                return `Removing constraints from column(s) ${step.cols}`;
+            case "removeConstraintFromCell":
+                return `Removing constraint from cell (${step.row}, ${step.col})`;
             default:
-                return ""; // Or handle unknown actions appropriately
+                return "";
         }
-    }
+    }    
 }
