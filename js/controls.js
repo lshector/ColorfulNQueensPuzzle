@@ -140,9 +140,16 @@ class SolveMenuControls extends MenuControls {
             }
 
             this.steps_widget = new AlgorithmStepsWidget("alg-steps-container-solve", result.steps, this.puzzle);
-            
         } else if (algorithm === 'deductive') {
-            solvePuzzleDeductive(this.puzzle);
+            const result = solvePuzzleDeductive(this.puzzle);
+
+            if (result.solved) {
+                console.log("Solution found:", result.solution);
+            } else {
+                console.log("No solution found.");
+            }
+
+            this.steps_widget = new AlgorithmStepsWidget("alg-steps-container-solve", result.steps, this.puzzle);
         }
     }
 }

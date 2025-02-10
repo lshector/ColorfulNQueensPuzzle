@@ -52,7 +52,34 @@ export class PuzzleGrid {
         // You might want to set the height of the grid container as well to make it a square
         gridContainer.style.height = gridContainer.offsetWidth + "px"; // Makes it a square
     
-    }    
+    }
+
+    getEmptyCellsPerColor() {
+        const emptyCellsPerColor = {};
+        
+        // Initialize N empty sets
+        for (let i = 0; i < this.N; i++) {
+            emptyCellsPerColor[i] = new Set();
+        }
+        
+        for (let row = 0; row < this.N; row++) {
+          for (let col = 0; col < this.N; col++) {
+            const label = this.labels[row][col];
+            const state = this.state[row][col];
+    
+            if (state === 0) { // Assuming 0 represents empty
+              if (!emptyCellsPerColor[label]) {
+                emptyCellsPerColor[label] = new Set();
+              }
+              emptyCellsPerColor[label].add([row, col]);
+            }
+          }
+        }
+    
+        console.log(emptyCellsPerColor)
+        return emptyCellsPerColor;
+      }
+    
 
     setColorScheme(new_colorScheme) {
         if (new_colorScheme.length < this.N) {
@@ -311,9 +338,12 @@ export class PuzzleGrid {
     
     placeQueenFromSolver(row, col) {
         const cell = `${row},${col}`
+
         this.placedQueens.add(cell);
-    
         this.state[row][col] = STATE_QUEEN;
+
+        let updatedCells = [];
+        updatedCells.push([`${row},${col}`])
 
         const affectedCells = getAffectedCellsFromPlacingQueenAt(this.N, this.labels, row, col);
         for (const affectedCell of affectedCells) {
@@ -322,8 +352,11 @@ export class PuzzleGrid {
 
             if (this.constraintCount[r][c] === 1) {
                 this.state[r][c] = STATE_MARKED;
+                updatedCells.push([`${r},${c}`])
             }
         }
+
+        return updatedCells;
     }
 
     removeQueenFromSolver(row, col) {
@@ -343,8 +376,12 @@ export class PuzzleGrid {
         }
     }
 
+    isSolved() {
+        return this.placedQueens.size >= this.N && this.conflictingCells.size === 0;
+    }
+
     checkIfSolved() {
-        if (this.placedQueens.size >= this.N && this.conflictingCells.size === 0) {
+        if (this.isSolved()) {
             console.log("Congrats! You've solved the puzzle.");
         }
     }
