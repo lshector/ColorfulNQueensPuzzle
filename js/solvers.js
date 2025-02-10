@@ -35,6 +35,7 @@ export function isSafe(N, state, labels, row, col) {
 
 export function solvePuzzleBacktracking(N, labels) {
     const steps = [];
+    steps.push({ action: "Begin" });
 
     function solveBacktrackingRecursive(state, row) {
         if (row === N) {

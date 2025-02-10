@@ -96,9 +96,13 @@ function initializePlayButton(containerId, puzzle, steps, stepIncrementPercent =
             let currentStep = parseInt(slider.value);
             const totalSteps = steps.length - 1;
 
+            if (currentStep === totalSteps) {
+                currentStep = 0;
+            }
+
             intervalId = setInterval(() => {
-                const stepIncrement = Math.ceil(totalSteps * stepIncrementPercent); // Calculate increment
-                currentStep = Math.min(currentStep + stepIncrement, totalSteps); // Use calculated increment
+                const stepIncrement = Math.ceil(totalSteps * stepIncrementPercent);
+                currentStep = Math.min(currentStep + stepIncrement, totalSteps);
 
                 slider.value = currentStep;
                 sliderValue.value = currentStep;
@@ -141,21 +145,6 @@ function createAlgorithmStepsWidget(containerId) {
             // Add event listeners (widget logic)
             slider.addEventListener('input', () => {
                 sliderValue.value = slider.value;
-            });
-
-            minusButton.addEventListener('click', () => {
-                slider.value = Math.max(parseInt(slider.value) - 1, 0);
-                sliderValue.value = slider.value;
-            });
-
-            plusButton.addEventListener('click', () => {
-                slider.value = Math.min(parseInt(slider.value) + 1, 100);
-                sliderValue.value = slider.value;
-            });
-
-            playButton.addEventListener('click', () => {
-                console.log("Play button clicked. Value:", slider.value, "in container:", containerId);
-                // Implement your play logic here, specific to this widget instance
             });
         });
 }
