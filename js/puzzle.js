@@ -16,7 +16,7 @@ export class PuzzleGrid {
         this.state = Array(this.N).fill(null).map(() => Array(this.N).fill(0));
         this.clickResponse = 'none';
         this.constraintCount = Array(this.N).fill(null).map(() => Array(this.N).fill(0));
-        this.conflictingCells = new Set();
+        this.highlightedCells = new Set();
         this.placedQueens = new Set();
         this.placedQueensColors = new Set();
     
@@ -142,15 +142,15 @@ export class PuzzleGrid {
             for (let j = 0; j < this.N; j++) {
                 const cell = gridContainer.children[i * this.N + j];
                 const currentLabel = this.labels[i][j];
-                const cellKey = `${i},${j}`; // Key for conflictingCells Set
+                const cellKey = `${i},${j}`; // Key for highlightedCells Set
 
                 // Color assignment
                 const label = this.labels[i][j];
                 if (label >= 0 && label < this.colorScheme.length) { // Check bounds
                     let baseColor = this.colorScheme[label];
-                    if (this.conflictingCells.has(cellKey)) {
+                    if (this.highlightedCells.has(cellKey)) {
                         cell.style.color = '#8B0000'; // Conflicting cell text red
-                    } else if (this.conflictingCells.size > 0){
+                    } else if (this.highlightedCells.size > 0){
                         baseColor = this.darkenColor(baseColor, 0.5); // Darken by 50%
                         cell.style.color = 'black'; //Reset color to black
                     } else {
@@ -240,9 +240,9 @@ export class PuzzleGrid {
     }
 
     updateCellStateFromClick(row, col) {
-        if (this.conflictingCells.size > 0) {
+        if (this.highlightedCells.size > 0) {
             // return early if the cell is not one of the highlighted cells
-            if (!this.conflictingCells.has(`${row},${col}`)) {
+            if (!this.highlightedCells.has(`${row},${col}`)) {
                 return;
             }
         }
@@ -285,7 +285,7 @@ export class PuzzleGrid {
 
         this.placedQueens.clear();
         this.placedQueensColors.clear();
-        this.conflictingCells.clear();
+        this.highlightedCells.clear();
         this.refreshAppearanceAllLabels();
     }
 
@@ -333,8 +333,8 @@ export class PuzzleGrid {
             this.constraintCount[r][c] += 1;
             
             if (this.state[r][c] === STATE_QUEEN) {
-                this.conflictingCells.add(cell);
-                this.conflictingCells.add(affectedCell);
+                this.highlightedCells.add(cell);
+                this.highlightedCells.add(affectedCell);
             }
         }
     }
@@ -350,8 +350,8 @@ export class PuzzleGrid {
             this.constraintCount[r][c] -= 1;
         }
 
-        this.conflictingCells.delete(cell);
-        this.conflictingCells = recalculateConflictingCells(this.N, this.state, this.labels, this.conflictingCells);
+        this.highlightedCells.delete(cell);
+        this.highlightedCells = recalculateConflictingCells(this.N, this.state, this.labels, this.highlightedCells);
     }
     
     placeQueenFromSolver(row, col) {
@@ -361,8 +361,8 @@ export class PuzzleGrid {
         this.placedQueensColors.add(this.labels[row][col]);
         this.state[row][col] = STATE_QUEEN;
 
-        let updatedCells = [];
-        updatedCells.push([`${row},${col}`])
+        let updatedCells = new Set();
+        updatedCells.add(`${row},${col}`)
 
         const affectedCells = getAffectedCellsFromPlacingQueenAt(this.N, this.labels, row, col);
         for (const affectedCell of affectedCells) {
@@ -371,7 +371,7 @@ export class PuzzleGrid {
 
             if (this.constraintCount[r][c] === 1) {
                 this.state[r][c] = STATE_MARKED;
-                updatedCells.push([`${r},${c}`])
+                updatedCells.add(`${r},${c}`)
             }
         }
 
@@ -379,11 +379,13 @@ export class PuzzleGrid {
     }
 
     removeQueenFromSolver(row, col) {
+        let updatedCells = new Set();
         const cell = `${row},${col}`;
+
         this.placedQueens.delete(cell);
         this.placedQueensColors.delete(this.labels[row][col]);
-        
         this.state[row][col] = STATE_EMPTY;
+        updatedCells.add(`${row},${col}`);
 
         const affectedCells = getAffectedCellsFromPlacingQueenAt(this.N, this.labels, row, col);
         for (const cell of affectedCells) {
@@ -392,18 +394,21 @@ export class PuzzleGrid {
 
             if (this.constraintCount[r][c] === 0) {
                 this.state[r][c] = STATE_EMPTY;
+                updatedCells.add(`${r},${c}`)
             }
         }
+
+        return updatedCells;
     }
 
     addConstraintToRows(rows, excludeLabels) {
-        let updatedCells = [];
+        let updatedCells = new Set();
         
         if (typeof rows === 'number') {  // Check if rows is a single number
             rows = [rows]; // Wrap it in an array to make it iterable
         } else if (!Array.isArray(rows)) {
           console.error("rows must be a number or an array of numbers.");
-          return []; // Return empty array to avoid issues
+          return updatedCells; // Return empty array to avoid issues
         }
 
         for (const row of rows) {
@@ -426,7 +431,7 @@ export class PuzzleGrid {
     
                 if (this.constraintCount[row][j] === 1) {
                     this.state[row][j] = STATE_MARKED;
-                    updatedCells.push([`${row},${j}`]);
+                    updatedCells.add(`${row},${j}`);
                 }
             }
         }
@@ -436,13 +441,13 @@ export class PuzzleGrid {
     
 
     addConstraintToColumns(cols, excludeLabels) {
-        let updatedCells = [];
+        let updatedCells = new Set();
     
         if (typeof cols === 'number') {
             cols = [cols];
         } else if (!Array.isArray(cols)) {
           console.error("cols must be a number or an array of numbers.");
-          return [];
+          return updatedCells;
         }
     
         for (const col of cols) {
@@ -465,7 +470,7 @@ export class PuzzleGrid {
     
                 if (this.constraintCount[i][col] === 1) {
                     this.state[i][col] = STATE_MARKED;
-                    updatedCells.push([`${i},${col}`]);
+                    updatedCells.add(`${i},${col}`);
                 }
             }
         }
@@ -474,15 +479,19 @@ export class PuzzleGrid {
     }    
 
     addConstraintToCell(row, col) {
+        let updatedCells = new Set();
         this.constraintCount[row][col] += 1;
 
         if (this.constraintCount[row][col] === 1) {
             this.state[row][col] = STATE_MARKED;
+            updatedCells.add(`${row},${col}`);
         }
+
+        return updatedCells;
     }
 
     isSolved() {
-        return this.placedQueens.size >= this.N && this.conflictingCells.size === 0;
+        return this.placedQueens.size >= this.N && this.highlightedCells.size === 0;
     }
 
     checkIfSolved() {

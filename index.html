@@ -56,9 +56,22 @@
             <button class="button">Generate Puzzle</button>
             <div id="alg-steps-container-generate"></div>
 
-            <label for="size">Grid Size:</label>
-            <input type="number" id="size" value="8"><br><br>
-        </div>
+            <div class="input-group">  <label for="size">Grid Size:</label>
+                <input type="number" id="size" value="8">
+            </div>
+
+            <div class="input-group">  <label for="seed">Seed:</label>
+                <input type="text" id="seed" value="colorful-n-queens">
+            </div>
+        
+            <div class="input-group">  <label for="max-attempts">Max Attempts:</label>
+                <input type="number" id="max-attempts" value="1000">
+            </div>
+        
+            <div class="input-group">  <label for="batch">Batch:</label>
+                <input type="number" id="batch" value="1">
+            </div>
+        </div>        
 
         <div id="solve-menu" class="menu" style="display: none;">
             <h2>Solve Mode</h2>

@@ -144,20 +144,31 @@ export class AlgorithmStepsWidget {
         this.puzzle.clearState();
         for (let i = 0; i <= stepIndex; i++) {
             const step = this.steps[i];
+            this.puzzle.highlightedCells = new Set();
             if (step.action === "Place Queen") {
-                this.puzzle.placeQueenFromSolver(step.row, step.col);
+                const updatedCells = this.puzzle.placeQueenFromSolver(step.row, step.col);
+                this.puzzle.highlightedCells = updatedCells;
+                this.puzzle.refreshAppearanceAllLabels();
                 appendLineToSteps(`Placed queen at (${step.row}, ${step.col})`);
             } else if (step.action === "Backtrack") {
-                this.puzzle.removeQueenFromSolver(step.row, step.col);
+                const updatedCells = this.puzzle.removeQueenFromSolver(step.row, step.col);
+                this.puzzle.highlightedCells = updatedCells;
+                this.puzzle.refreshAppearanceAllLabels();
                 appendLineToSteps(`Backtracking by removing queen from (${step.row}, ${step.col})`);
             } else if (step.action === "addConstraintToRows") {
-                this.puzzle.addConstraintToRows(step.rows, step.excludeColors);
+                const updatedCells = this.puzzle.addConstraintToRows(step.rows, step.excludeColors);
+                this.puzzle.highlightedCells = updatedCells;
+                this.puzzle.refreshAppearanceAllLabels();
                 appendLineToSteps(`Marking all cells in row(s) ${step.rows} excluding colors: ${step.excludeColors}`);
             } else if (step.action === "addConstraintToColumns") {
-                this.puzzle.addConstraintToColumns(step.cols, step.excludeColors);
+                const updatedCells = this.puzzle.addConstraintToColumns(step.cols, step.excludeColors);
+                this.puzzle.highlightedCells = updatedCells;
+                this.puzzle.refreshAppearanceAllLabels();
                 appendLineToSteps(`Marking all cells in col(s) ${step.cols} excluding colors: ${step.excludeColors}`);
             } else if (step.action === "addConstraintToCell") {
-                this.puzzle.addConstraintToCell(step.row, step.col);
+                const updatedCells = this.puzzle.addConstraintToCell(step.row, step.col);
+                this.puzzle.highlightedCells = updatedCells;
+                this.puzzle.refreshAppearanceAllLabels();
                 appendLineToSteps(`Marking cell (${step.row}, ${step.col})`);
             }
         }

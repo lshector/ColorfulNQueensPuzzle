@@ -92,17 +92,41 @@ body .button.selected, /* Include <body> or a high-level parent */
     display: none;
 }
 
-#generate-menu label {
-    display: block;
-    margin-bottom: 5px;
+#generate-menu { /* Or the parent of #generate-menu if appropriate */
+    display: flex;
+    flex-direction: column; /* Arrange items vertically */
 }
 
-#generate-menu input[type="number"] {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-bottom: 10px;
-  width: 50px; /* Adjust as needed */
+.input-group {
+    margin-bottom: 15px;
+    width: 100%; /* Important: Ensure the input group takes full width */
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.input-group input[type="text"],
+.input-group input[type="number"] {
+    flex-grow: 1; /* Allow input to expand */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 14px;
+    width: 100%; /* Ensure input takes full width of .input-group */
+}
+
+
+/* Optional: Add a more distinct border on focus */
+.input-group input[type="text"]:focus,
+.input-group input[type="number"]:focus {
+    border-color: #007bff; /* Example: Blue border on focus */
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.2); /* Example: Blue shadow on focus */
 }
 
 

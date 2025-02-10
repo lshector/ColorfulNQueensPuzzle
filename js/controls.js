@@ -1,6 +1,7 @@
 import { solvePuzzleBacktracking } from "./backtracking.js"
 import { solvePuzzleDeductive } from "./deductive.js"
 import { AlgorithmStepsWidget } from "./algorithm_steps_widget.js"
+import { PuzzleGenerator } from "./generation.js"
 
 export class SelectModeControls {
     constructor(puzzle) {
@@ -109,6 +110,46 @@ class GenerateMenuControls extends MenuControls {
     constructor(puzzle) {
         super(puzzle, 'generate-menu');
         this.steps_widget = new AlgorithmStepsWidget('alg-steps-container-generate', [], this.puzzle);
+        this.generateButton = this.menu.querySelector('.button'); // Use this.menu here!
+        this.sizeInput = this.menu.querySelector('#size');      // Use this.menu here!
+        this.seedInput = this.menu.querySelector('#seed');
+        this.maxAttemptsInput = this.menu.querySelector('#max-attempts');
+        this.batchInput = this.menu.querySelector('#batch');
+
+        this.generateButton.addEventListener('click', () => {
+            const N = parseInt(this.sizeInput.value);
+            const seed = this.seedInput.value || 'colored-n-queens';
+            const maxAttempts = parseInt(this.maxAttemptsInput.value) || 1000;
+            const batch = parseInt(this.batchInput.value) || 1;
+
+            this.generatePuzzle(N, seed, maxAttempts, batch);
+        });
+    }
+
+    async generatePuzzle(N, seed, maxAttempts, batch) {
+        console.log(`Generating puzzle with N=${N}, seed='${seed}', maxAttempts=${maxAttempts}, batch=${batch}`);
+
+        const generator = new PuzzleGenerator();
+
+        try {
+            const [puzzle, stats, eventLog] = await generator.run(N, seed, maxAttempts);
+
+            console.log("Puzzle generated successfully:", puzzle);
+            console.log("Stats:", stats);
+            console.log("Event Log:", eventLog);
+
+            this.steps_widget.setSteps(eventLog);
+            this.steps_widget.render();
+
+            this.puzzle.labels = puzzle.labels;
+            if (this.puzzle.display) {
+                this.puzzle.display();
+            }
+
+        } catch (error) {
+            console.error("Puzzle generation failed:", error);
+            alert("Puzzle generation failed. See console for details.");
+        }
     }
 }
 

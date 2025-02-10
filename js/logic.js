@@ -109,3 +109,95 @@ export function recalculateConflictingCells(N, state, labels, conflictingCells) 
 
     return newConflictingCells;
 }
+
+function getUnpaintedCellCandidates(puzzle) {
+    const paintedCellsPerColor = puzzle.getEmptyCellsPerColor();
+    const unpaintedCellCandidates = {};
+
+    for (let i = 0; i < paintedCellsPerColor.length; i++) {
+        const paintedCells = paintedCellsPerColor[i];
+        const candidates = new Set(); // Use a Set to avoid duplicates
+
+        for (const cell of paintedCells) {
+            const [row, col] = cell; // Destructure the cell tuple
+
+            if (row > 0 && puzzle.labels[row - 1][col] === -1) {
+                candidates.add([row - 1, col]);
+            }
+
+            if (row < puzzle.size - 1 && puzzle.labels[row + 1][col] === -1) {
+                candidates.add([row + 1, col]);
+            }
+
+            if (col > 0 && puzzle.labels[row][col - 1] === -1) {
+                candidates.add([row, col - 1]);
+            }
+
+            if (col < puzzle.size - 1 && puzzle.labels[row][col + 1] === -1) {
+                candidates.add([row, col + 1]);
+            }
+        }
+
+        if (candidates.size > 0) {
+            unpaintedCellCandidates[i] = Array.from(candidates); // Convert Set to Array for easier use later.
+        }
+    }
+
+    return unpaintedCellCandidates;
+}
+
+function paintSingleCell(puzzle, rng, candidates, renderer, attempt, eventLog) {
+    while (Object.keys(candidates).length > 0) { // Check if candidates is empty
+        console.debug(`There are ${Object.keys(candidates).length} possible selections`);
+        console.debug(`Possible selections:\n${JSON.stringify(candidates, null, 2)}`); // Use JSON.stringify for better formatting
+
+        // Random Selection
+        const colorPick = rng.choice(Object.keys(candidates)); // Get a random key (color)
+        const cellPick = rng.choice(candidates[colorPick].length); // Get random index in the color's candidates array
+
+        // Fill the selected cell with the selected color
+        const [row, col] = candidates[colorPick][cellPick];
+        puzzle.labels[row][col] = parseInt(colorPick); // colorPick is a string, parse to int
+        console.debug(
+            `Random selection: Color ${colorPick}, ` +
+            `Candidate #${cellPick}, Cell [${row}, ${col}]`
+        );
+
+        // Display algorithm step
+        attempt.numPaintedCells++;
+        eventLog.push(["paint", [row, col], parseInt(colorPick)]); // Use array for event log
+        if (renderer) {
+            renderer.updatePuzzle(puzzle);
+            renderer.display({ waitTimeMs: DisplayTimesInMs.ALG_STEP }); // Use object for display options
+        }
+
+        // Try to solve the puzzle using the deductive solver
+        console.disable(); // Replace logging.disable()
+        const solver = new DeductiveSolver({ earlyReturnCell: [row, col] }); // Assuming DeductiveSolver is a class
+        const solutions = solver.solve(new PuzzleMoveHandler(puzzle));
+        console.enable(); // Replace logging.disable(logging.NOTSET) - if such a method exists
+
+        if (solutions.length > 0) {
+            return true; // Successfully painted the cell
+        }
+
+        console.debug("Couldn't solve puzzle using deduction. Backtracking");
+        puzzle.labels[row][col] = -1;
+
+        // Remove candidate from list
+        candidates[colorPick].splice(cellPick, 1); // Remove the cell from the array
+        if (candidates[colorPick].length === 0) {
+            delete candidates[colorPick]; // Remove the color if no candidates left
+        }
+
+        // Display algorithm step
+        attempt.numUnpaintedCells++;
+        eventLog.push(["unpaint", [row, col]]);
+        if (renderer) {
+            renderer.updatePuzzle(puzzle);
+            renderer.display({ waitTimeMs: DisplayTimesInMs.ALG_STEP });
+        }
+    }
+
+    return false; // Failed to paint the cell
+}

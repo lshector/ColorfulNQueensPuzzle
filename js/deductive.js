@@ -10,7 +10,7 @@ function deduceQueenPlacement(puzzle, steps) {
       for (const label of matchingColors) {
         const [row, col] = emptyCellsPerColor[label].values().next().value; // Get the single cell from Set
         const updatedCells = puzzle.placeQueenFromSolver(row, col);
-        const numUpdatedCells = updatedCells.length;
+        const numUpdatedCells = updatedCells.size;
 
         if (numUpdatedCells > 0) {
           numDeductions += 1;
@@ -53,7 +53,7 @@ function deduceSingleRowCol(puzzle, steps) {
       if (matchingColors.length > 0) {
         for (const label of matchingColors) {
           const [updatedCells, key] = deductionActions[name](label);
-          const numUpdatedCells = updatedCells.length;
+          const numUpdatedCells = updatedCells.size;
 
           if (numUpdatedCells > 0) {
             numDeductions += 1;
@@ -147,7 +147,7 @@ function deduceUsingColorExclusivity(puzzle, steps) {
       }
     
       // Log the deduction for rows or columns
-      const numUpdatedCells = updatedCells.length;
+      const numUpdatedCells = updatedCells.size;
       if (numUpdatedCells > 0) {
         numDeductions++;
         steps.push(newStep);
