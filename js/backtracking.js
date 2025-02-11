@@ -35,7 +35,7 @@ export function solvePuzzleBacktracking(N, labels) {
         return null;
     }
 
-    steps.push({ action: "Begin" });
+    steps.push({ action: "Begin Solver" });
     const state = Array(N).fill(null).map(() => Array(N).fill(0));
     const solution = solveBacktrackingRecursive(state, 0);
     steps.push({ action: "Done" });

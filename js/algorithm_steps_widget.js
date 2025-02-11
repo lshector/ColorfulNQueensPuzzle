@@ -139,10 +139,14 @@ export class AlgorithmStepsWidget {
             stepsText.scrollTop = stepsText.scrollHeight;
         };
     
-        this.puzzle.clearState();
-        this.puzzle.clearLabels();
-    
-        const handleBegin = () => {
+        const handleBeginSolver = () => {
+            this.puzzle.clearState();
+            return new Set();
+        }
+
+        const handleBeginGeneration = () => {
+            this.puzzle.clearState();
+            this.puzzle.clearLabels();
             return new Set();
         }
 
@@ -155,7 +159,8 @@ export class AlgorithmStepsWidget {
             this.puzzle.highlightedCells = new Set();
     
             const actionHandlers = {
-                "Begin": () => handleBegin(),
+                "Begin Solver": () => handleBeginSolver(),
+                "Begin Generation": () => handleBeginGeneration(),
                 "Place Queen": () => this.puzzle.placeQueenFromSolver(step.row, step.col),
                 "Backtrack": () => this.puzzle.removeQueenFromSolver(step.row, step.col),
                 "addConstraintToRows": () => this.puzzle.addConstraintToRows(step.rows, step.excludeColors),
@@ -184,8 +189,10 @@ export class AlgorithmStepsWidget {
     // Helper function to generate action descriptions
     getActionDescription(step) {
         switch (step.action) {
-            case "Begin":
-                return `Starting algorithm`;
+            case "Begin Solver":
+                return `Starting solver algorithm`;
+            case "Begin Generation":
+                return `Starting generation algorithm`;
             case "Place Queen":
                 return `Placed queen at (${step.row}, ${step.col})`;
             case "Backtrack":

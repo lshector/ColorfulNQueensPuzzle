@@ -217,7 +217,7 @@ function deduce(puzzle, steps) {
 export function solvePuzzleDeductive(puzzle) {
     const steps = [];
     
-    steps.push({ action: "Begin" });
+    steps.push({ action: "Begin Solver" });
     while (puzzle.isSolved() === false) {
         const numDeductions = deduce(puzzle, steps);
         if (numDeductions === 0) {

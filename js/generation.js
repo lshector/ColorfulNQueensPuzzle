@@ -97,7 +97,7 @@ export class PuzzleGenerator {
         let attempt = null;
         let puzzle = null;
 
-        steps.push({ action: "Begin" });
+        steps.push({ action: "Begin Generation" });
         while ((generatedPuzzle === false) && numAttempts < maxNumAttempts) {
             console.info(`Seeding RNG using seed string '${seed}'`); // Log the current seed
             const seedHash = this.hashString(seed);
