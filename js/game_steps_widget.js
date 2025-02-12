@@ -1,7 +1,7 @@
-export class AlgorithmStepsWidget {
-    constructor(containerId, steps, puzzle) {
+export class GameStepsWidget {
+    constructor(containerId, puzzle) {
         this.containerId = containerId;
-        this.steps = steps;
+        this.steps = [];
         this.puzzle = puzzle;
         this.container = document.getElementById(containerId);
 
@@ -18,6 +18,14 @@ export class AlgorithmStepsWidget {
         });
     }
 
+    push(data) {
+        this.steps.push(data);
+    }
+
+    clearSteps() {
+        this.steps = [];
+    }
+
     loadHTML() {
         return fetch('html/algorithm_steps_widget.html')
             .then(response => response.text())
@@ -29,7 +37,7 @@ export class AlgorithmStepsWidget {
                 this.playButton = this.container.querySelector('.play-button');
                 this.plusButton = this.container.querySelector('.plus-button');
                 this.minusButton = this.container.querySelector('.minus-button');
-                this.stepsText = this.container.querySelector('.algorithm-steps-text');
+                this.stepsText = this.container.querySelector('.game-steps-text');
 
                 if (!this.slider || !this.sliderValue || !this.playButton || !this.plusButton || !this.minusButton || !this.stepsText) {
                     console.error("Required elements not found in container:", this.containerId);
@@ -213,10 +221,12 @@ export class AlgorithmStepsWidget {
                 return `Painting cell (${step.row}, ${step.col}) with color ${step.label}`;
             case "unpaintCell":
                 return `Removing label from cell (${step.row}, ${step.col})`;
+            case "clearLabels":
+                return "Clearing all labels";
             case "Done":
                 return `Completed algorithm`;
             default:
-                return "";
+                return `Unknown action ${step.action}`;
         }
     }    
 }

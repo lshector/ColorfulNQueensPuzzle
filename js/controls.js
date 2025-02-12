@@ -1,6 +1,6 @@
 import { solvePuzzleBacktracking } from "./backtracking.js"
 import { solvePuzzleDeductive } from "./deductive.js"
-import { AlgorithmStepsWidget } from "./algorithm_steps_widget.js"
+import { GameStepsWidget } from "./game_steps_widget.js"
 import { PuzzleGenerator } from "./generation.js"
 
 export class SelectModeControls {
@@ -101,7 +101,7 @@ class PlayMenuControls extends MenuControls {
 class GenerateMenuControls extends MenuControls {
     constructor(puzzle) {
         super(puzzle, 'generate-menu');
-        this.steps_widget = new AlgorithmStepsWidget('alg-steps-container-generate', [], this.puzzle);
+        this.stepsWidget = new GameStepsWidget('game-steps-container-generate', this.puzzle);
         this.generateButton = this.menu.querySelector('.button'); // Use this.menu here!
         this.sizeInput = this.menu.querySelector('#size');      // Use this.menu here!
         this.seedInput = this.menu.querySelector('#seed');
@@ -123,8 +123,9 @@ class GenerateMenuControls extends MenuControls {
 
         const generator = new PuzzleGenerator();
 
+        this.stepsWidget.clearSteps();
         try {
-            const result = await generator.run(N, seed, maxAttempts);
+            const result = await generator.run(N, this.stepsWidget, seed, maxAttempts);
 
             console.log("Puzzle generated successfully:", result.puzzle);
             console.log("Stats:", result.stats);
@@ -135,8 +136,8 @@ class GenerateMenuControls extends MenuControls {
 
             console.log(result)
 
-            this.steps_widget = new AlgorithmStepsWidget("alg-steps-container-generate", result.steps, this.puzzle);
-
+            this.stepsWidget.puzzle = this.puzzle;
+            this.stepsWidget.updateSliderMax();
         } catch (error) {
             console.error("Puzzle generation failed:", error);
             alert("Puzzle generation failed. See console for details.");
@@ -147,23 +148,24 @@ class GenerateMenuControls extends MenuControls {
 class SolveMenuControls extends MenuControls {
     constructor(puzzle) {
         super(puzzle, 'solve-menu');
-        this.steps_widget = new AlgorithmStepsWidget('alg-steps-container-solve', [], this.puzzle);
+        this.stepsWidget = new GameStepsWidget('game-steps-container-solve', this.puzzle);
 
         this.backtrackingButton = document.getElementById('backtrackingButton');
         this.deductiveButton = document.getElementById('deductiveButton');
 
-        this.backtrackingButton.addEventListener('click', () => this.selectAlgorithm('backtracking'));
-        this.deductiveButton.addEventListener('click', () => this.selectAlgorithm('deductive'));
+        this.backtrackingButton.addEventListener('click', () => this.runAlgorithm('backtracking'));
+        this.deductiveButton.addEventListener('click', () => this.runAlgorithm('deductive'));
 
         this.selectedAlgorithm = 'backtracking';
     }
 
-    selectAlgorithm(algorithm) {
+    runAlgorithm(algorithm) {
         this.selectedAlgorithm = algorithm;
         this.puzzle.clearState();
+        this.stepsWidget.clearSteps();
 
         if (algorithm === 'backtracking') {
-            const result = solvePuzzleBacktracking(this.puzzle.N, this.puzzle.labels);
+            const result = solvePuzzleBacktracking(this.puzzle.N, this.puzzle.labels, this.stepsWidget);
 
             if (result.solved) {
                 console.log("Solution found:", result.solution);
@@ -171,9 +173,9 @@ class SolveMenuControls extends MenuControls {
                 console.log("No solution found.");
             }
 
-            this.steps_widget = new AlgorithmStepsWidget("alg-steps-container-solve", result.steps, this.puzzle);
+            this.stepsWidget.updateSliderMax();
         } else if (algorithm === 'deductive') {
-            const result = solvePuzzleDeductive(this.puzzle);
+            const result = solvePuzzleDeductive(this.puzzle, this.stepsWidget);
 
             if (result.solved) {
                 console.log("Solution found:", result.solution);
@@ -181,7 +183,7 @@ class SolveMenuControls extends MenuControls {
                 console.log("No solution found.");
             }
 
-            this.steps_widget = new AlgorithmStepsWidget("alg-steps-container-solve", result.steps, this.puzzle);
+            this.stepsWidget.updateSliderMax();
         }
     }
 }

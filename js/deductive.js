@@ -1,4 +1,4 @@
-function deduceQueenPlacement(puzzle, steps) {
+function deduceQueenPlacement(puzzle, stepsWidget) {
     let numDeductions = 0;
     const emptyCellsPerColor = puzzle.getEmptyCellsPerColor();
 
@@ -14,7 +14,9 @@ function deduceQueenPlacement(puzzle, steps) {
 
         if (numUpdatedCells > 0) {
           numDeductions += 1;
-          steps.push({ action: "Place Queen", row, col });
+          if (stepsWidget) {
+            stepsWidget.push({ action: "Place Queen", row, col });
+          }
           console.debug(`Deduced rule 'queen_placement' for color ${label}`);
           console.debug(`   Gained information about ${numUpdatedCells} cells`);
           //DeductiveSolver.displayAlgorithmStep(moveHandler, renderer);
@@ -26,7 +28,7 @@ function deduceQueenPlacement(puzzle, steps) {
 
 }
 
-function deduceSingleRowCol(puzzle, steps) {
+function deduceSingleRowCol(puzzle, stepsWidget) {
     let numDeductions = 0;
     const emptyCellsPerColor = puzzle.getEmptyCellsPerColor();
 
@@ -57,11 +59,13 @@ function deduceSingleRowCol(puzzle, steps) {
 
           if (numUpdatedCells > 0) {
             numDeductions += 1;
-            if (name === 'color_in_single_row') {
-                steps.push({ action: 'addConstraintToRows', rows: key, excludeColors: [label] });
-            }
-            else if (name === 'color_in_single_col') {
-                steps.push({ action: 'addConstraintToColumns', cols: key, excludeColors: [label] });
+            if (stepsWidget) {
+              if (name === 'color_in_single_row') {
+                stepsWidget.push({ action: 'addConstraintToRows', rows: key, excludeColors: [label] });
+              }
+              else if (name === 'color_in_single_col') {
+                stepsWidget.push({ action: 'addConstraintToColumns', cols: key, excludeColors: [label] });
+              }
             }
 
             console.debug(`Deduced rule '${name}' for color ${label}`);
@@ -74,7 +78,7 @@ function deduceSingleRowCol(puzzle, steps) {
     return numDeductions;
 }
 
-function deduceUsingColorExclusivity(puzzle, steps) {
+function deduceUsingColorExclusivity(puzzle, stepsWidget) {
   let numDeductions = 0;
   const N = puzzle.N;
 
@@ -150,7 +154,11 @@ function deduceUsingColorExclusivity(puzzle, steps) {
       const numUpdatedCells = updatedCells.size;
       if (numUpdatedCells > 0) {
         numDeductions++;
-        steps.push(newStep);
+
+        if (stepsWidget) {
+          stepsWidget.push(newStep);
+        }
+        
         console.debug(`${cellGroupType} ${start}-${end - 1} must place in a queen in colors ${containedIntervals}`);
         console.debug(`   Gained information about ${numUpdatedCells} cells`);
       }
@@ -166,7 +174,7 @@ function deduceUsingColorExclusivity(puzzle, steps) {
   return numDeductions;
 }
 
-function deduceInvalidPlacements(puzzle, steps) {
+function deduceInvalidPlacements(puzzle, stepsWidget) {
     let numDeductions = 0;
     const emptyCells = puzzle.getEmptyCells();
 
@@ -187,7 +195,10 @@ function deduceInvalidPlacements(puzzle, steps) {
       puzzle.removeQueenFromSolver(row, col);
 
       if (isInvalidPlacement) {
-        steps.push({ action: 'addConstraintToCell', row, col });
+        if (stepsWidget) {
+          stepsWidget.push({ action: 'addConstraintToCell', row, col });
+        }
+
         puzzle.addConstraintToCell(row, col);
         numDeductions += 1;
       }
@@ -196,41 +207,41 @@ function deduceInvalidPlacements(puzzle, steps) {
     return numDeductions;
 }
 
-function deduce(puzzle, steps) {
-    const deductionMethods = [
-        deduceQueenPlacement,
-        deduceSingleRowCol,
-        deduceUsingColorExclusivity,
-        deduceInvalidPlacements,
-    ];
+export function solvePuzzleDeductive(puzzle, stepsWidget) {
+  const deductionMethods = [
+    deduceQueenPlacement,
+    deduceSingleRowCol,
+    deduceUsingColorExclusivity,
+    deduceInvalidPlacements,
+  ];
 
-    for (const method of deductionMethods) {
-        const numDeductions = method(puzzle, steps);
-        if (numDeductions > 0) {
-            return numDeductions;
-        }
-    }
+  if (stepsWidget) {
+    stepsWidget.push({ action: "Begin Solver" });
+  }
 
-    return 0;
-}
-
-export function solvePuzzleDeductive(puzzle) {
-    const steps = [];
-    
-    steps.push({ action: "Begin Solver" });
     while (puzzle.isSolved() === false) {
-        const numDeductions = deduce(puzzle, steps);
-        if (numDeductions === 0) {
-            console.warn("Ran out of deductions");
-            break;
+      let numDeductions = 0;
+      for (const method of deductionMethods) {
+        numDeductions += method(puzzle, stepsWidget);
+        if (numDeductions > 0) {
+          break;
         }
+      }
+
+      if (numDeductions === 0) {
+        console.warn("Ran out of deductions");
+        break;
+      }
     }
-    steps.push({ action: "Done" });
+
+    if (stepsWidget) {
+      stepsWidget.push({ action: "Done" });
+    }
 
     if (puzzle.isSolved()) {
         let solution = puzzle.placedQueens;
-        return { solution, solved: true, steps };
+        return { solution, solved: true };
     } else {
-        return { solution: null, solved: false, steps };
+        return { solution: null, solved: false };
     }
 }
