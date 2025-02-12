@@ -1,7 +1,7 @@
 export class GameStepsWidget {
-    constructor(containerId, steps, puzzle) {
+    constructor(containerId, puzzle) {
         this.containerId = containerId;
-        this.steps = steps;
+        this.steps = [];
         this.puzzle = puzzle;
         this.container = document.getElementById(containerId);
 
@@ -16,6 +16,14 @@ export class GameStepsWidget {
         this.loadHTML().then(() => {  // Load HTML and THEN initialize
           this.initialize();
         });
+    }
+
+    push(data) {
+        this.steps.push(data);
+    }
+
+    clearSteps() {
+        this.steps = [];
     }
 
     loadHTML() {
@@ -213,10 +221,12 @@ export class GameStepsWidget {
                 return `Painting cell (${step.row}, ${step.col}) with color ${step.label}`;
             case "unpaintCell":
                 return `Removing label from cell (${step.row}, ${step.col})`;
+            case "clearLabels":
+                return "Clearing all labels";
             case "Done":
                 return `Completed algorithm`;
             default:
-                return "";
+                return `Unknown action ${step.action}`;
         }
     }    
 }

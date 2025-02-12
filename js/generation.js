@@ -26,7 +26,7 @@ class Stats {
     }
 }
 
-async function generatePuzzleSingleAttempt(puzzle, rng, steps) {
+async function generatePuzzleSingleAttempt(puzzle, rng, stepsWidget) {
     const attempt = new Stats.GenerationStats();
 
     // Generate a valid placement for queens using solvePuzzleBacktracking
@@ -47,7 +47,9 @@ async function generatePuzzleSingleAttempt(puzzle, rng, steps) {
     for (let label = 0; label < puzzle.N; label++) {
         const [row, col] = solution[label];
         puzzle.labels[row][col] = label;
-        steps.push({ action: "paintCell", row, col, label });
+        if (stepsWidget) {
+            stepsWidget.push({ action: "paintCell", row, col, label });
+        }
     }
 
     // Iteratively assign colors to each remaining cell
@@ -61,7 +63,7 @@ async function generatePuzzleSingleAttempt(puzzle, rng, steps) {
             break;
         }
 
-        const painted = await paintSingleCell(puzzle, rng, candidates, attempt, steps);
+        const painted = await paintSingleCell(puzzle, rng, candidates, attempt, stepsWidget);
         if (!painted) {
             console.info("Exhausted all possible selections to paint a cell");
             return [false, attempt];
@@ -86,10 +88,9 @@ async function generatePuzzleSingleAttempt(puzzle, rng, steps) {
 }
 
 export class PuzzleGenerator {
-    async run(N, seed = "colorful-n-queens", maxNumAttempts = 1) {
+    async run(N, stepsWidget, seed = "colorful-n-queens", maxNumAttempts = 1) {
         const startTime = Date.now();
         console.info(`Generating puzzle of size ${N}`);
-        const steps = [];
 
         const stats = new Stats();
         let numAttempts = 0;
@@ -97,13 +98,17 @@ export class PuzzleGenerator {
         let attempt = null;
         let puzzle = null;
 
-        steps.push({ action: "Begin Generation" });
+        if (stepsWidget) {
+            stepsWidget.push({ action: "Begin Generation" });
+        }
         while ((generatedPuzzle === false) && numAttempts < maxNumAttempts) {
             console.info(`Seeding RNG using seed string '${seed}'`); // Log the current seed
             const seedHash = this.hashString(seed);
             console.debug(`Seed string hash: ${seedHash}`);
 
-            steps.push({ action: "clearLabels" });
+            if (stepsWidget) {
+                stepsWidget.push({ action: "clearLabels" });
+            }
 
             const myrng = new Math.seedrandom(seedHash.toString()); // Initialize RNG *inside* run
             const rng = {
@@ -125,7 +130,7 @@ export class PuzzleGenerator {
             console.info(`>>>>> Starting attempt ${numAttempts} to generate a valid puzzle`);
             const attemptStartTime = Date.now();
             puzzle = new PuzzleGrid(N);
-            [generatedPuzzle, attempt] = await generatePuzzleSingleAttempt(puzzle, rng, steps);
+            [generatedPuzzle, attempt] = await generatePuzzleSingleAttempt(puzzle, rng, stepsWidget);
             const attemptEndTime = Date.now();
             attempt.duration = (attemptEndTime - attemptStartTime) / 1000;
             console.info(`Attempt ${numAttempts} took ${attempt.duration} seconds`);
@@ -138,7 +143,10 @@ export class PuzzleGenerator {
                 console.debug(`Setting seed string to '${seed}' for next run`);
             }
         }
-        steps.push({ action: "End" });
+
+        if (stepsWidget) {
+            stepsWidget.push({ action: "End" });
+        }
 
         if (generatedPuzzle === false) {
             throw new Error(`Failed to generate a valid puzzle after ${maxNumAttempts} attempts.`);
@@ -150,7 +158,7 @@ export class PuzzleGenerator {
         stats.totalDuration = (endTime - startTime) / 1000; // Convert to seconds
         console.info(`Total puzzle generation time: ${stats.totalDuration} seconds`);
 
-        return { puzzle: puzzle, stats: stats, steps: steps};
+        return { puzzle: puzzle, stats: stats };
     }
 
     hashString(str) { // Example hash function (you can use a better one)
