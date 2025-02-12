@@ -1,4 +1,4 @@
-export class AlgorithmStepsWidget {
+export class GameStepsWidget {
     constructor(containerId, steps, puzzle) {
         this.containerId = containerId;
         this.steps = steps;
@@ -29,7 +29,7 @@ export class AlgorithmStepsWidget {
                 this.playButton = this.container.querySelector('.play-button');
                 this.plusButton = this.container.querySelector('.plus-button');
                 this.minusButton = this.container.querySelector('.minus-button');
-                this.stepsText = this.container.querySelector('.algorithm-steps-text');
+                this.stepsText = this.container.querySelector('.game-steps-text');
 
                 if (!this.slider || !this.sliderValue || !this.playButton || !this.plusButton || !this.minusButton || !this.stepsText) {
                     console.error("Required elements not found in container:", this.containerId);

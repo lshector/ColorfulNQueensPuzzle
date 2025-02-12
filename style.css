@@ -131,7 +131,7 @@ body .button.selected, /* Include <body> or a high-level parent */
 
 
 
-.algorithm-steps-widget {
+.game-steps-widget {
     border: 1px solid #ddd; /* Softer border */
     padding: 10px;
     margin-top: 10px;
@@ -207,7 +207,7 @@ body .button.selected, /* Include <body> or a high-level parent */
     background-color: #fff; /* White background */
 }
 
-.algorithm-steps-widget .algorithm-steps-text {
+.game-steps-widget .game-steps-text {
     width: 100%; /* Or a specific width */
     height: 100px; /* Adjust height as needed */
     border: 1px solid #ccc;

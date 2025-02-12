@@ -1,6 +1,6 @@
 import { solvePuzzleBacktracking } from "./backtracking.js"
 import { solvePuzzleDeductive } from "./deductive.js"
-import { AlgorithmStepsWidget } from "./algorithm_steps_widget.js"
+import { GameStepsWidget } from "./game_steps_widget.js"
 import { PuzzleGenerator } from "./generation.js"
 
 export class SelectModeControls {
@@ -101,7 +101,7 @@ class PlayMenuControls extends MenuControls {
 class GenerateMenuControls extends MenuControls {
     constructor(puzzle) {
         super(puzzle, 'generate-menu');
-        this.steps_widget = new AlgorithmStepsWidget('alg-steps-container-generate', [], this.puzzle);
+        this.steps_widget = new GameStepsWidget('game-steps-container-generate', [], this.puzzle);
         this.generateButton = this.menu.querySelector('.button'); // Use this.menu here!
         this.sizeInput = this.menu.querySelector('#size');      // Use this.menu here!
         this.seedInput = this.menu.querySelector('#seed');
@@ -135,7 +135,7 @@ class GenerateMenuControls extends MenuControls {
 
             console.log(result)
 
-            this.steps_widget = new AlgorithmStepsWidget("alg-steps-container-generate", result.steps, this.puzzle);
+            this.steps_widget = new GameStepsWidget("game-steps-container-generate", result.steps, this.puzzle);
 
         } catch (error) {
             console.error("Puzzle generation failed:", error);
@@ -147,7 +147,7 @@ class GenerateMenuControls extends MenuControls {
 class SolveMenuControls extends MenuControls {
     constructor(puzzle) {
         super(puzzle, 'solve-menu');
-        this.steps_widget = new AlgorithmStepsWidget('alg-steps-container-solve', [], this.puzzle);
+        this.steps_widget = new GameStepsWidget('game-steps-container-solve', [], this.puzzle);
 
         this.backtrackingButton = document.getElementById('backtrackingButton');
         this.deductiveButton = document.getElementById('deductiveButton');
@@ -171,7 +171,7 @@ class SolveMenuControls extends MenuControls {
                 console.log("No solution found.");
             }
 
-            this.steps_widget = new AlgorithmStepsWidget("alg-steps-container-solve", result.steps, this.puzzle);
+            this.steps_widget = new GameStepsWidget("game-steps-container-solve", result.steps, this.puzzle);
         } else if (algorithm === 'deductive') {
             const result = solvePuzzleDeductive(this.puzzle);
 
@@ -181,7 +181,7 @@ class SolveMenuControls extends MenuControls {
                 console.log("No solution found.");
             }
 
-            this.steps_widget = new AlgorithmStepsWidget("alg-steps-container-solve", result.steps, this.puzzle);
+            this.steps_widget = new GameStepsWidget("game-steps-container-solve", result.steps, this.puzzle);
         }
     }
 }
