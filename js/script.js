@@ -1,5 +1,5 @@
-import { PuzzleGrid } from './puzzle.js'
-import { SelectModeControls } from './controls.js'
+import { PuzzleGrid } from './widgets/puzzle.js'
+import { SelectModeControls } from './widgets/controls.js'
 
 const GRID_LABELS = [
     [1, 1, 1, 7, 7, 7, 2, 2],

@@ -1,6 +1,6 @@
 import { solvePuzzleDeductive } from "./deductive.js";
-import { STATE_EMPTY, STATE_QUEEN } from "./puzzle.js"
-import { enableLogging, disableLogging } from "./logger.js"
+import { STATE_EMPTY, STATE_QUEEN } from "../widgets/puzzle.js"
+import { enableLogging, disableLogging } from "../logger.js"
 
 export function isSafe(N, state, labels, row, col) {
     // Check column conflicts
@@ -118,9 +118,6 @@ export function getUnpaintedCellCandidates(puzzle) {
     const paintedCellsPerColor = puzzle.getEmptyCellsPerColor();
     const unpaintedCellCandidates = {};
 
-    console.log("Painted Cells shit")
-    console.log(paintedCellsPerColor)
-
     for (let i = 0; i < puzzle.N; i++) {
         const paintedCells = paintedCellsPerColor[i];
         const candidates = new Set(); // Use a Set to avoid duplicates
@@ -149,8 +146,6 @@ export function getUnpaintedCellCandidates(puzzle) {
             unpaintedCellCandidates[i] = Array.from(candidates); // Convert Set to Array for easier use later.
         }
     }
-
-    console.log(unpaintedCellCandidates)
 
     return unpaintedCellCandidates;
 }

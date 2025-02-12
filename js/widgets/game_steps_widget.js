@@ -186,12 +186,12 @@ export class GameStepsWidget {
             if (step.action in actionHandlers) {
                 const updatedCells = actionHandlers[step.action]();
                 this.puzzle.highlightedCells = updatedCells;
-                this.puzzle.refreshAppearanceAllLabels();
                 appendLine(this.getActionDescription(step));
             }
         }
     
-        this.puzzle.refreshAppearanceAllCells();    
+        this.puzzle.refreshAppearanceAllLabels();
+        this.puzzle.refreshAppearanceAllCells();
     }
     
     // Helper function to generate action descriptions

@@ -1,8 +1,8 @@
-import { PuzzleGrid } from "./puzzle.js"
+import { PuzzleGrid } from "../widgets/puzzle.js"
 import { solvePuzzleBacktracking } from "./backtracking.js"
 import { solvePuzzleDeductive } from "./deductive.js"
 import { getUnpaintedCellCandidates, paintSingleCell } from "./logic.js"
-import { enableLogging, disableLogging } from "./logger.js"
+import { enableLogging, disableLogging } from "../logger.js"
 
 class Stats {
     constructor() {

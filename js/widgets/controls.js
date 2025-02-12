@@ -1,7 +1,7 @@
-import { solvePuzzleBacktracking } from "./backtracking.js"
-import { solvePuzzleDeductive } from "./deductive.js"
+import { solvePuzzleBacktracking } from "../algorithms/backtracking.js"
+import { solvePuzzleDeductive } from "../algorithms/deductive.js"
+import { PuzzleGenerator } from "../algorithms/generation.js"
 import { GameStepsWidget } from "./game_steps_widget.js"
-import { PuzzleGenerator } from "./generation.js"
 
 export class SelectModeControls {
     constructor(puzzle) {

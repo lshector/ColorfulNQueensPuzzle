@@ -1,4 +1,4 @@
-import { STATE_EMPTY, STATE_QUEEN } from "./puzzle.js"
+import { STATE_EMPTY, STATE_QUEEN } from "../widgets/puzzle.js"
 import { isSafe } from "./logic.js";
 
 export function solvePuzzleBacktracking(N, labels, stepsWidget) {    

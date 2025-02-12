@@ -1,4 +1,4 @@
-import { getAffectedCellsFromPlacingQueenAt, recalculateConflictingCells } from "./logic.js";
+import { getAffectedCellsFromPlacingQueenAt, recalculateConflictingCells } from "../algorithms/logic.js";
 
 export const NUM_STATES = 3;
 export const STATE_EMPTY = 0;
@@ -13,7 +13,19 @@ export const DEFAULT_COLOR_SCHEME = [
 ];
 
 export class PuzzleGrid {
+    static instance = null; // Static property to hold the single instance
+
     constructor(N) {
+        if (PuzzleGrid.instance) {
+            PuzzleGrid.instance.initialize(N);
+            return PuzzleGrid.instance;
+        }
+        
+        this.initialize(N);
+        PuzzleGrid.instance = this;
+    }
+
+    initialize(N) {
         console.log(`Initializing PuzzleGrid of size ${N}`);
         this.N = N;
         this.colorScheme = DEFAULT_COLOR_SCHEME;
@@ -58,7 +70,6 @@ export class PuzzleGrid {
     
         // You might want to set the height of the grid container as well to make it a square
         this.gridContainer.style.height = this.gridContainer.offsetWidth + "px"; // Makes it a square
-    
     }
 
     getEmptyCells() {
