@@ -1,9 +1,18 @@
+export class GameStep {
+    constructor(action, note, args) {
+        this.action = null;
+        this.note = null;
+        this.args = null;
+    }
+}
+
 export class GameStepsWidget {
     constructor(containerId, puzzle) {
         this.containerId = containerId;
         this.steps = [];
         this.puzzle = puzzle;
         this.container = document.getElementById(containerId);
+        this.animationFrameId = null;
 
         if (!this.container) {
             console.error("Container not found:", containerId);
@@ -94,46 +103,65 @@ export class GameStepsWidget {
     }
 
 
-    initializePlayButton() {
+    initializePlayButton(animationSpeed = 100) {
         this.playButton.addEventListener('click', () => {
             this.playing = !this.playing;
-
+    
             if (this.playing) {
                 if (this.steps.length === 0) {
                     return;
                 }
-
+    
                 this.playButton.textContent = "⏸";
                 let currentStep = parseInt(this.slider.value);
                 const totalSteps = this.steps.length - 1;
-                const stepIncrementPercent = 0.01; // Customizable
-                const frameDelay = 100; // Customizable
-
+    
                 if (currentStep === totalSteps) {
                     currentStep = 0;
                 }
-
-                this.intervalId = setInterval(() => {
-                    const stepIncrement = Math.ceil(totalSteps * stepIncrementPercent);
-                    currentStep = Math.min(currentStep + stepIncrement, totalSteps);
-
-                    this.updateSliderValue(currentStep);
-
-                    if (currentStep === totalSteps) {
-                        this.interruptPlay();
+    
+                let animationFrameId;
+                let startTime;
+    
+                const animate = (timestamp) => {
+                    if (!startTime) startTime = timestamp; // Initialize startTime on the first frame
+                    const elapsedTime = timestamp - startTime;
+    
+                    if (elapsedTime >= animationSpeed) {
+                        startTime = timestamp; // Reset startTime for the next step
+                        currentStep++;
+    
+                        if (currentStep > totalSteps) {
+                            this.interruptPlay(animationFrameId);
+                            return;
+                        }
+    
+                        this.updateSliderValue(currentStep);
+    
+                        if (currentStep === totalSteps) {
+                            this.interruptPlay(animationFrameId);
+                        }
                     }
-                }, frameDelay);
+    
+                    animationFrameId = requestAnimationFrame(animate);
+                };
+    
+                animationFrameId = requestAnimationFrame(animate);
+    
             } else {
-                this.interruptPlay();
+                this.interruptPlay(this.animationFrameId);
             }
         });
     }
-
-    interruptPlay() {
-        clearInterval(this.intervalId);
+    
+    interruptPlay(animationFrameId) {
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+        }
+        this.animationFrameId = null;
+        this.playButton.textContent = "▶️";
         this.playing = false;
-        this.playButton.textContent = "▶";
-    }
+    }    
 
     updatePuzzleState(stepIndex) {
         if (this.steps.length === 0) return;
