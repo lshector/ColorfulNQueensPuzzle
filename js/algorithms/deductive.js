@@ -186,7 +186,7 @@ function deduceInvalidPlacements(puzzle, stepsWidget) {
 
       for (let i = 0; i < puzzle.N; i++) {
         if (newEmptyCells[i].size === 0 && !puzzle.placedQueensColors.has(i)) { // Use .size for Set length
-          console.debug(`Placing a queen at (${row}, ${col}) would result in no valid moves for color ${i}`);
+          console.log(`Placing a queen at (${row}, ${col}) would result in no valid moves for color ${i}`);
           isInvalidPlacement = true;
           break; // Important: Exit the inner loop once invalidity is found
         }

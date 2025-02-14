@@ -165,6 +165,8 @@ export class GameStepsWidget {
         for (let i = 0; i <= stepIndex; i++) {
             const step = this.steps[i];
             this.puzzle.highlightedCells = new Set();
+
+            console.log(`Running step ${i+1} out of ${stepIndex}`)
     
             const actionHandlers = {
                 "Begin Solver": () => handleBeginSolver(),
