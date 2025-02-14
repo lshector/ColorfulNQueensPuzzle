@@ -1,4 +1,4 @@
-import { PuzzleGrid } from "../widgets/puzzle.js"
+import { PuzzleGridWidget } from "../widgets/puzzle_grid_widget.js"
 import { solvePuzzleBacktracking } from "./backtracking.js"
 import { solvePuzzleDeductive } from "./deductive.js"
 import { getUnpaintedCellCandidates, paintSingleCell } from "./logic.js"
@@ -129,7 +129,7 @@ export class PuzzleGenerator {
             numAttempts++;
             console.info(`>>>>> Starting attempt ${numAttempts} to generate a valid puzzle`);
             const attemptStartTime = Date.now();
-            puzzle = new PuzzleGrid(N);
+            puzzle = new PuzzleGridWidget(N);
             [generatedPuzzle, attempt] = await generatePuzzleSingleAttempt(puzzle, rng, stepsWidget);
             const attemptEndTime = Date.now();
             attempt.duration = (attemptEndTime - attemptStartTime) / 1000;

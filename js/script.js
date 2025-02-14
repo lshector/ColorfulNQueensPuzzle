@@ -1,5 +1,5 @@
-import { PuzzleGrid } from './widgets/puzzle.js'
-import { SelectModeControls } from './widgets/controls.js'
+import { PuzzleGridWidget } from './widgets/puzzle_grid_widget.js'
+import { ControlsWidget } from './widgets/controls_widget.js'
 
 const GRID_LABELS = [
     [1, 1, 1, 7, 7, 7, 2, 2],
@@ -12,8 +12,8 @@ const GRID_LABELS = [
     [4, 4, 4, 5, 5, 5, 5, 5]
 ];
 
-let puzzle = new PuzzleGrid(GRID_LABELS.length)
-puzzle.setLabels(GRID_LABELS)
+let puzzleGridWidget = new PuzzleGridWidget(GRID_LABELS.length)
+puzzleGridWidget.setLabels(GRID_LABELS)
 
-let selectModeControls = new SelectModeControls(puzzle)
-selectModeControls.buttons.info.click();
+let controlsWidget = new ControlsWidget(puzzleGridWidget)
+controlsWidget.buttons.info.click();

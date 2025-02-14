@@ -12,21 +12,21 @@ export const DEFAULT_COLOR_SCHEME = [
     "#E6F389"
 ];
 
-export class PuzzleGrid {
+export class PuzzleGridWidget {
     static instance = null; // Static property to hold the single instance
 
     constructor(N) {
-        if (PuzzleGrid.instance) {
-            PuzzleGrid.instance.initialize(N);
-            return PuzzleGrid.instance;
+        if (PuzzleGridWidget.instance) {
+            PuzzleGridWidget.instance.initialize(N);
+            return PuzzleGridWidget.instance;
         }
         
         this.initialize(N);
-        PuzzleGrid.instance = this;
+        PuzzleGridWidget.instance = this;
     }
 
     initialize(N) {
-        console.log(`Initializing PuzzleGrid of size ${N}`);
+        console.log(`Initializing PuzzleGridWidget of size ${N}`);
         this.N = N;
         this.colorScheme = DEFAULT_COLOR_SCHEME;
         this.labels = Array(this.N).fill(null).map(() => Array(this.N).fill(-1));

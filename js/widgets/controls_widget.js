@@ -3,7 +3,7 @@ import { solvePuzzleDeductive } from "../algorithms/deductive.js"
 import { PuzzleGenerator } from "../algorithms/generation.js"
 import { GameStepsWidget } from "./game_steps_widget.js"
 
-export class SelectModeControls {
+export class ControlsWidget {
     constructor(puzzle) {
         this.puzzle = puzzle;
 

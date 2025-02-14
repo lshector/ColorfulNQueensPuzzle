@@ -1,5 +1,5 @@
 import { solvePuzzleDeductive } from "./deductive.js";
-import { STATE_EMPTY, STATE_QUEEN } from "../widgets/puzzle.js"
+import { STATE_EMPTY, STATE_QUEEN } from "../widgets/puzzle_grid_widget.js"
 import { enableLogging, disableLogging } from "../logger.js"
 
 export function isSafe(N, state, labels, row, col) {
