@@ -64,10 +64,11 @@ export class GameStepsWidget {
         this.initializePlayButton();
     }
 
-    updateSliderValue(new_value) {
-        this.slider.value = new_value;
-        this.sliderValue.value = new_value;
-        this.updatePuzzleState(new_value);
+    updateSliderValue(newValue) {
+        //const prevValue = this.slider.value;
+        this.slider.value = newValue;
+        this.sliderValue.value = newValue;
+        this.updatePuzzleState(newValue);
     }
 
     updateSliderMax() {
@@ -120,7 +121,6 @@ export class GameStepsWidget {
                     currentStep = 0;
                 }
     
-                let animationFrameId;
                 let startTime;
     
                 const animate = (timestamp) => {
@@ -132,31 +132,32 @@ export class GameStepsWidget {
                         currentStep++;
     
                         if (currentStep > totalSteps) {
-                            this.interruptPlay(animationFrameId);
+                            this.interruptPlay();
                             return;
                         }
     
                         this.updateSliderValue(currentStep);
     
                         if (currentStep === totalSteps) {
-                            this.interruptPlay(animationFrameId);
+                            this.interruptPlay();
                         }
                     }
     
-                    animationFrameId = requestAnimationFrame(animate);
+                    this.animationFrameId = requestAnimationFrame(animate);
                 };
     
-                animationFrameId = requestAnimationFrame(animate);
+                this.animationFrameId = requestAnimationFrame(animate);
     
             } else {
-                this.interruptPlay(this.animationFrameId);
+                this.interruptPlay();
             }
         });
     }
     
-    interruptPlay(animationFrameId) {
-        if (animationFrameId) {
-            cancelAnimationFrame(animationFrameId);
+    interruptPlay() {
+        console.log("Interrupting play");
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
         }
         this.animationFrameId = null;
         this.playButton.textContent = "▶️";
@@ -193,8 +194,6 @@ export class GameStepsWidget {
         for (let i = 0; i <= stepIndex; i++) {
             const step = this.steps[i];
             this.puzzle.highlightedCells = new Set();
-
-            console.log(`Running step ${i+1} out of ${stepIndex}`)
     
             const actionHandlers = {
                 "Begin Solver": () => handleBeginSolver(),
