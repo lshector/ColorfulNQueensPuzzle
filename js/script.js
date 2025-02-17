@@ -40,6 +40,11 @@ puzzleGridWidget.setOnClick((i , j) => {
       console.log(`User REALLY clicked at ${i},${j}`);
     });
   }
+
+  if (i == 1 && j == 1) {
+    console.log("Reshaping the grid");
+    puzzleGridWidget.resizeGrid(5, 5);
+  }
 });
 
 // Update cells:

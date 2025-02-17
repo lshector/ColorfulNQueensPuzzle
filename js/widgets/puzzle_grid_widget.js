@@ -9,18 +9,52 @@ export const DEFAULT_COLOR_SCHEME = [
   "#E6F389"
 ]
 
-export class PuzzleGridWidget {
+/**
+ * A widget for displaying and interacting with a square grid.
+ */
+ export class PuzzleGridWidget {
+  /**
+   * A cache of PuzzleGridWidget instances, keyed by container ID.
+   * @type {object}
+   */
+   static instances = {};
+
+  /**
+   * Constructs a new PuzzleGridWidget.
+   * @param {string} containerId The ID of the HTML element that will contain the grid.
+   */
   constructor(containerId) {
+    /**
+     * The HTML element that contains the grid.
+     * @type {HTMLElement|null}
+     */
     this.grid = document.getElementById(containerId);
     if (!this.grid) {
       console.error(`Grid with ID '${containerId}' not found.`);
     }
+    /**
+     * The size of the grid (number of rows and columns).
+     * @type {number}
+     */
     this.size = 0;
+    /**
+     * The callback function to be called when a cell is clicked.
+     * @type {Function|null}
+     */
     this.callback = null;
+
+    /**
+     * Stores bound click handlers for each cell to prevent memory leaks.
+     * @type {object}
+     */
+    this.boundClickHandlers = {};
   }
 
-  static instances = {}; // Factory cache
-
+  /**
+   * Gets a PuzzleGridWidget instance for the given container ID.  Creates a new instance if one does not already exist.
+   * @param {string} containerId The ID of the HTML element that will contain the grid.
+   * @returns {PuzzleGridWidget} The PuzzleGridWidget instance.
+   */
   static getInstance(containerId) {
     if (!PuzzleGridWidget.instances[containerId]) {
       PuzzleGridWidget.instances[containerId] = new PuzzleGridWidget(containerId);
@@ -28,6 +62,10 @@ export class PuzzleGridWidget {
     return PuzzleGridWidget.instances[containerId];
   }
 
+  /**
+   * Resizes the grid to the given size.
+   * @param {number} size The new size of the grid (number of rows and columns).
+   */
   resizeGrid(size) {
     if (!this.grid) return;
 
@@ -45,6 +83,13 @@ export class PuzzleGridWidget {
       for (let j = 0; j < this.size; j++) {
         const cell = document.createElement('div');
         cell.classList.add('grid-cell');
+
+        if (this.callback) {
+          // re-assign callback
+          this.boundClickHandlers[i][j] = () => this.callback(i, j);
+          cell.addEventListener('click', this.boundClickHandlers[i][j]);
+        }
+
         this.grid.appendChild(cell);
       }
     }
@@ -53,6 +98,12 @@ export class PuzzleGridWidget {
     this.grid.style.height = this.grid.offsetWidth + "px";
   }
 
+  /**
+   * Gets the grid cell element at the given row and column.
+   * @param {number} row The row index (0-based).
+   * @param {number} col The column index (0-based).
+   * @returns {HTMLElement|null} The grid cell element, or null if the row or column is invalid.
+   */
   getCellElement(row, col) {
     if (!this.grid || this.size === 0 || row < 0 || row >= this.size || col < 0 || col >= this.size) {
       return null; // Handle invalid row/col
@@ -63,7 +114,11 @@ export class PuzzleGridWidget {
     return cells[index] || null; // Return the cell at the calculated index
   }
 
-
+  /**
+   * Applies an update to a grid cell's style and text content.
+   * @param {HTMLElement} cell The grid cell element to update.
+   * @param {object} update An object containing the style updates and/or textContent.
+   */
   applyCellUpdate(cell, update) {
     Object.assign(cell.style, update);
     if (update.textContent) {
@@ -71,6 +126,11 @@ export class PuzzleGridWidget {
     }
   }
 
+  /**
+   * Updates multiple cells in the grid.
+   * @param {Array<object>} updates An array of update objects, each containing
+   *        the row, col, and style/textContent updates.
+   */
   updateGrid(updates) {
     if (!this.grid || this.size === 0) return;
 
@@ -78,49 +138,45 @@ export class PuzzleGridWidget {
       const [row, col] = [update.row, update.col];
       const cell = this.getCellElement(row, col);
 
-      if (cell) {
-        const cellCopy = cell.cloneNode(true);
-        this.applyCellUpdate(cellCopy, update);
-        this.grid.replaceChild(cellCopy, cell);
+      const cellCopy = cell.cloneNode(true);
+      this.applyCellUpdate(cellCopy, update);
+      this.grid.replaceChild(cellCopy, cell);
 
-        if (this.callback) {
-          // re-assign callback
-          this.boundClickHandlers[row][col] = () => this.callback(row, col);
-          cellCopy.addEventListener('click', this.boundClickHandlers[row][col]);
-        }
-
-      } else {
-        console.warn(`Cell at row ${row}, col ${col} not found.`);
+      if (this.callback) {
+        // re-assign callback
+        this.boundClickHandlers[row][col] = () => this.callback(row, col);
+        cellCopy.addEventListener('click', this.boundClickHandlers[row][col]);
       }
     }
   }
 
+  /**
+   * Sets the callback function to be called when a cell is clicked.
+   * @param {Function|null} callback The callback function.  Will be passed the row and column of the clicked cell.  If null, removes all click handlers.
+   */
   setOnClick(callback) {
-    // 1. Always clear previous event listeners (if any)
-    for (let i = 0; i < this.size; ++i) {
-      for (let j = 0; j < this.size; ++j) {
-        const cell = this.getCellElement(i, j);
-        if (cell && this.boundClickHandlers && this.boundClickHandlers[i] && this.boundClickHandlers[i][j]) {
+    if (this.callback) {
+      // Clear previous event listeners
+      for (let i = 0; i < this.size; ++i) {
+        for (let j = 0; j < this.size; ++j) {
+          const cell = this.getCellElement(i, j);
           cell.removeEventListener('click', this.boundClickHandlers[i][j]);
         }
       }
     }
 
-    // 2. Store the new callback
+    // Store the new callback
     this.callback = callback;
-    this.boundClickHandlers = {}; // Initialize or clear the boundClickHandlers object
+    this.boundClickHandlers = {};
 
-    // 3. Add new event listeners (if a callback is provided)
     if (this.callback) {
+      // Add new event listeners
       for (let i = 0; i < this.size; ++i) {
         this.boundClickHandlers[i] = {}; // Initialize inner object for each row
         for (let j = 0; j < this.size; ++j) {
           const cell = this.getCellElement(i, j);
-          if (cell) {
-            // Create a bound handler for *each cell*:
-            this.boundClickHandlers[i][j] = () => this.callback(i, j);
-            cell.addEventListener('click', this.boundClickHandlers[i][j]);
-          }
+          this.boundClickHandlers[i][j] = () => this.callback(i, j);
+          cell.addEventListener('click', this.boundClickHandlers[i][j]);
         }
       }
     }
