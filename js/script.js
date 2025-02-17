@@ -25,6 +25,23 @@ const puzzleGridWidget = PuzzleGridWidget.getInstance('grid-container');
 // Initial setup:
 puzzleGridWidget.resizeGrid(10, 10); // Create a 5x10 grid
 
+puzzleGridWidget.setOnClick((i , j) => {
+  console.log(`User clicked at ${i},${j}`);
+
+  if (i == 0 && j == 0) {
+    console.log("Adapting the click");
+    puzzleGridWidget.setOnClick((i , j) => {
+      puzzleGridWidget.updateGrid([
+        {
+          row: i, col: j,
+          backgroundColor: 'gray'
+        }
+      ]);
+      console.log(`User REALLY clicked at ${i},${j}`);
+    });
+  }
+});
+
 // Update cells:
 puzzleGridWidget.updateGrid([
   {

@@ -28,8 +28,6 @@ export class PuzzleGridWidget {
     return PuzzleGridWidget.instances[containerId];
   }
 
-  // ===========================================================================
-
   resizeGrid(size) {
     if (!this.grid) return;
 
@@ -55,11 +53,9 @@ export class PuzzleGridWidget {
     this.grid.style.height = this.grid.offsetWidth + "px";
   }
 
-  // ===========================================================================
-
   getCellElement(row, col) {
     if (!this.grid || this.size === 0 || row < 0 || row >= this.size || col < 0 || col >= this.size) {
-        return null; // Handle invalid row/col
+      return null; // Handle invalid row/col
     }
 
     const index = row * this.size + col; // Calculate the 1D index
@@ -71,7 +67,7 @@ export class PuzzleGridWidget {
   applyCellUpdate(cell, update) {
     Object.assign(cell.style, update);
     if (update.textContent) {
-        cell.textContent = update.textContent;
+      cell.textContent = update.textContent;
     }
   }
 
@@ -79,49 +75,54 @@ export class PuzzleGridWidget {
     if (!this.grid || this.size === 0) return;
 
     for (const update of updates) {
-        const cell = this.getCellElement(update.row, update.col);
+      const [row, col] = [update.row, update.col];
+      const cell = this.getCellElement(row, col);
 
-        if (cell) {
-          const cellCopy = cell.cloneNode(true);
-          this.applyCellUpdate(cellCopy, update);
-          this.grid.replaceChild(cellCopy, cell);
-        } else {
-            console.warn(`Cell at row ${update.row}, col ${update.col} not found.`);
+      if (cell) {
+        const cellCopy = cell.cloneNode(true);
+        this.applyCellUpdate(cellCopy, update);
+        this.grid.replaceChild(cellCopy, cell);
+
+        if (this.callback) {
+          // re-assign callback
+          this.boundClickHandlers[row][col] = () => this.callback(row, col);
+          cellCopy.addEventListener('click', this.boundClickHandlers[row][col]);
         }
+
+      } else {
+        console.warn(`Cell at row ${row}, col ${col} not found.`);
+      }
     }
   }
 
-  // ============================================================================
-
   setOnClick(callback) {
-    // 1. Clear previous event listeners (if any)
-    if (this.callback) {
-        for (let i = 0; i < this.size; ++i) {
-            for (let j = 0; j < this.size; ++j) {
-                const cell = this.getCellElement(i, j);
-                if (cell) { // Important check in case a cell is null
-                    cell.removeEventListener('click', this.boundClickHandler); // Remove the *bound* handler
-                }
-            }
+    // 1. Always clear previous event listeners (if any)
+    for (let i = 0; i < this.size; ++i) {
+      for (let j = 0; j < this.size; ++j) {
+        const cell = this.getCellElement(i, j);
+        if (cell && this.boundClickHandlers && this.boundClickHandlers[i] && this.boundClickHandlers[i][j]) {
+          cell.removeEventListener('click', this.boundClickHandlers[i][j]);
         }
+      }
     }
 
     // 2. Store the new callback
     this.callback = callback;
+    this.boundClickHandlers = {}; // Initialize or clear the boundClickHandlers object
 
-    // 3. Add new event listeners
-    if (this.callback) { // Only add listeners if a callback is provided.
-        this.boundClickHandler = (i, j) => this.callback(i, j); // Create bound handler
-
-        for (let i = 0; i < this.size; ++i) {
-            for (let j = 0; j < this.size; ++j) {
-                const cell = this.getCellElement(i, j);
-                if (cell) {
-                    cell.addEventListener('click', () => this.boundClickHandler(i, j));
-                }
-            }
+    // 3. Add new event listeners (if a callback is provided)
+    if (this.callback) {
+      for (let i = 0; i < this.size; ++i) {
+        this.boundClickHandlers[i] = {}; // Initialize inner object for each row
+        for (let j = 0; j < this.size; ++j) {
+          const cell = this.getCellElement(i, j);
+          if (cell) {
+            // Create a bound handler for *each cell*:
+            this.boundClickHandlers[i][j] = () => this.callback(i, j);
+            cell.addEventListener('click', this.boundClickHandlers[i][j]);
+          }
         }
+      }
     }
-}
-
+  }
 }
