@@ -55,6 +55,7 @@ body .button.selected, /* Include <body> or a high-level parent */
     user-select: none;
     font-family: sans-serif;
     color: black;
+    border: 1px solid black;
     box-sizing: border-box; /* Important: Include border in size */
     overflow: hidden; /* Prevent content from overflowing */
 }
