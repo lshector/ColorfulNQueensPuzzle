@@ -3,12 +3,6 @@
  */
  export class PuzzleGridWidget {
   /**
-   * A cache of PuzzleGridWidget instances, keyed by container ID.
-   * @type {object}
-   */
-   static _instances = {};
-
-  /**
    * Constructs a new PuzzleGridWidget.
    * @param {string} containerId The ID of the HTML element that will contain the grid.
    */
@@ -37,18 +31,6 @@
      * @type {object}
      */
     this._boundClickHandlers = {};
-  }
-
-  /**
-   * Gets a PuzzleGridWidget instance for the given container ID.  Creates a new instance if one does not already exist.
-   * @param {string} containerId The ID of the HTML element that will contain the grid.
-   * @returns {PuzzleGridWidget} The PuzzleGridWidget instance.
-   */
-  static getInstance(containerId) {
-    if (!PuzzleGridWidget._instances[containerId]) {
-      PuzzleGridWidget._instances[containerId] = new PuzzleGridWidget(containerId);
-    }
-    return PuzzleGridWidget._instances[containerId];
   }
 
   /**
