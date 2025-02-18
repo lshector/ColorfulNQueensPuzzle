@@ -7,28 +7,21 @@ export const DEFAULT_COLOR_SCHEME = [
 ];
 
 export const MARKINGS_TO_TEXT = {
-  MARKING_NONE: '',
-  MARKING_X: 'x',
-  MARKING_QUEEN: '♛'
+  [MARKING_NONE]: '',
+  [MARKING_X]: 'x',
+  [MARKING_QUEEN]: '♛'
 }
 
 export class PuzzleGridRenderer {
-  constructor(initialState) {
-    this.state = initialState;
-    this.updateEntireGrid(this.state);
-  }
-
   updateGrid(gridWidget, updates) {
     let gridUpdatesList = [];
 
     // TODO: add updates for grid cell borders
     for (const rendererUpdate of updates) {
-      let gridUpdate = {
-          row: rendererUpdate.row,
-          col: rendererUpdate.col,
-      };
+      let [row, col] = [rendererUpdate.row, rendererUpdate.col];
+      let gridUpdate = { row, col };
       if (rendererUpdate.marking !== null) {
-        gridUpdate.textContent = rendererUpdate.marking;
+        gridUpdate.textContent = MARKINGS_TO_TEXT[rendererUpdate.marking];
       }
       if (rendererUpdate.colorGroup !== null) {
         gridUpdate.backgroundColor = DEFAULT_COLOR_SCHEME[rendererUpdate.colorGroup];

@@ -54,7 +54,7 @@ export class PuzzleGridState {
   * Clears all color groups on the grid.
   */
   clearColorGroups() {
-    this.colorGroups = Array(this.size).fill(null).map(() => Array(this.size).fill(NO_COLOR_GROUP));
+    this.colorGroups = Array(this.size).fill(null).map(() => Array(this.size).fill(COLOR_GROUP_NONE));
   }
 
   /**

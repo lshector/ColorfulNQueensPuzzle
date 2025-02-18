@@ -1,21 +1,22 @@
 import { PuzzleGridWidget } from './widgets/puzzle_grid_widget.js'
 import { PuzzleGridRenderer } from './widgets/puzzle_grid_renderer.js'
-import { PuzzleGridState } from './widgets/puzzle_grid_state.js';
+import { MARKING_NONE, PuzzleGridState } from './widgets/puzzle_grid_state.js';
 import { MARKING_X, MARKING_QUEEN } from './widgets/puzzle_grid_state.js';
 
 //import { ControlsWidget } from './widgets/controls_widget.js'
 
 
-// const GRID_LABELS = [
-//     [1, 1, 1, 7, 7, 7, 2, 2],
-//     [1, 1, 1, 7, 2, 2, 2, 0],
-//     [1, 1, 7, 7, 7, 0, 0, 0],
-//     [1, 7, 7, 0, 0, 0, 6, 3],
-//     [1, 7, 7, 7, 0, 0, 6, 6],
-//     [1, 1, 7, 5, 5, 6, 6, 6],
-//     [1, 4, 4, 4, 5, 5, 5, 6],
-//     [4, 4, 4, 5, 5, 5, 5, 5]
-// ];
+const GRID_LABELS = [
+    [1, 1, 1, 7, 7, 7, 2, 2],
+    [1, 1, 1, 7, 2, 2, 2, 0],
+    [1, 1, 7, 7, 7, 0, 0, 0],
+    [1, 7, 7, 0, 0, 0, 6, 3],
+    [1, 7, 7, 7, 0, 0, 6, 6],
+    [1, 1, 7, 5, 5, 6, 6, 6],
+    [1, 4, 4, 4, 5, 5, 5, 6],
+    [4, 4, 4, 5, 5, 5, 5, 5]
+];
+const SIZE = 8;
 
 // let puzzleGridWidget = new PuzzleGridWidget(GRID_LABELS.length)
 // puzzleGridWidget.setLabels(GRID_LABELS)
@@ -27,48 +28,22 @@ import { MARKING_X, MARKING_QUEEN } from './widgets/puzzle_grid_state.js';
 const puzzleGridWidget = PuzzleGridWidget.getInstance('grid-container');
 
 // Initial setup:
-puzzleGridWidget.resizeGrid(10); // Create a 10x10 grid
+puzzleGridWidget.resizeGrid(SIZE);
 
-const puzzleGridRenderer = new PuzzleGridRenderer();
-puzzleGridRenderer.updateGrid(puzzleGridWidget, [
-  {
-    row: 0, col: 0,
-    marking: MARKING_X,
-    colorGroup: 5
-  },
-  {
-    row: 2, col: 5,
-    marking: MARKING_QUEEN,
-    colorGroup: 0
-  },
-  {
-    row: 3, col: 4,
-    marking: null,
-    colorGroup: 1
+const puzzleGridRenderer = new PuzzleGridRenderer(new PuzzleGridState());
+
+let updates = []
+for (let i = 0; i < SIZE; ++i) {
+  for (let j = 0; j < SIZE; ++j) {
+    updates.push({
+      row: i, col: j,
+      marking: (i+j) % 3,
+      colorGroup: GRID_LABELS[i][j]
+    });
   }
-])
+}
 
-// puzzleGridWidget.setOnClick((i , j) => {
-//   console.log(`User clicked at ${i},${j}`);
-
-//   if (i == 0 && j == 0) {
-//     console.log("Adapting the click");
-//     puzzleGridWidget.setOnClick((i , j) => {
-//       puzzleGridWidget.updateGrid([
-//         {
-//           row: i, col: j,
-//           backgroundColor: 'gray'
-//         }
-//       ]);
-//       console.log(`User REALLY clicked at ${i},${j}`);
-//     });
-//   }
-
-//   if (i == 1 && j == 1) {
-//     console.log("Reshaping the grid");
-//     puzzleGridWidget.resizeGrid(5, 5);
-//   }
-// });
+puzzleGridRenderer.updateGrid(puzzleGridWidget, updates);
 
 // // Update cells:
 // puzzleGridWidget.updateGrid([
