@@ -1,4 +1,5 @@
 import { PuzzleGrid } from "./widgets/puzzle_grid.js";
+import { ControlsWidget } from "./widgets/controls_widget.js";
 
 const DEFAULT_PUZZLE = [
     [1, 1, 1, 7, 7, 7, 2, 2],
@@ -12,3 +13,6 @@ const DEFAULT_PUZZLE = [
 ];
 let puzzleGrid = PuzzleGrid.getInstance('grid-container');
 puzzleGrid.loadPuzzle(DEFAULT_PUZZLE);
+
+let puzzleControls = new ControlsWidget(puzzleGrid);
+puzzleControls.buttons.info.click();

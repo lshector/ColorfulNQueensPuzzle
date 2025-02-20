@@ -1,23 +1,23 @@
 import { solvePuzzleDeductive } from "./deductive.js";
-import { STATE_EMPTY, STATE_QUEEN } from "../widgets/puzzle_grid_widget.js"
+import { MARKING_NONE, MARKING_QUEEN } from "../widgets/puzzle_grid_state.js"
 import { enableLogging, disableLogging } from "../logger.js"
 
 export function isSafe(N, state, labels, row, col) {
     // Check column conflicts
     for (let j = 0; j < N; j++) {
-        if (j !== col && state[row][j] === STATE_QUEEN) return false;
+        if (j !== col && state[row][j] === MARKING_QUEEN) return false;
     }
 
     // Check row conflicts
     for (let i = 0; i < N; i++) {
-        if (i !== row && state[i][col] === STATE_QUEEN) return false;
+        if (i !== row && state[i][col] === MARKING_QUEEN) return false;
     }
 
     // Check diagonal conflicts
     for (const [dr, dc] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
         const nr = row + dr;
         const nc = col + dc;
-        if (nr >= 0 && nr < N && nc >= 0 && nc < N && state[nr][nc] === STATE_QUEEN) return false;
+        if (nr >= 0 && nr < N && nc >= 0 && nc < N && state[nr][nc] === MARKING_QUEEN) return false;
     }
 
     // Check color conflicts
@@ -25,7 +25,7 @@ export function isSafe(N, state, labels, row, col) {
     if (color !== -1) {
         for (let i = 0; i < N; i++) {
             for (let j = 0; j < N; j++) {
-                if ((i !== row || j !== col) && state[i][j] === STATE_QUEEN && labels[i][j] === color) {
+                if ((i !== row || j !== col) && state[i][j] === MARKING_QUEEN && labels[i][j] === color) {
                     return false;
                 }
             }
@@ -87,7 +87,7 @@ export function recalculateConflictingCells(N, state, labels, conflictingCells) 
         const affectedCells = getAffectedCellsFromPlacingQueenAt(N, labels, r, c);
         for (const affectedCell of affectedCells) {
             const [ar, ac] = affectedCell.split(",").map(Number);
-            if (state[ar][ac] === STATE_QUEEN) {
+            if (state[ar][ac] === MARKING_QUEEN) {
                 inConflict = true;
                 break;
             }
@@ -97,7 +97,7 @@ export function recalculateConflictingCells(N, state, labels, conflictingCells) 
             const color = labels[r][c];
             for (let i = 0; i < N; i++) {
                 for (let j = 0; j < N; j++) {
-                    if ((i !== r || j !== c) && state[i][j] === STATE_QUEEN && labels[i][j] === color) {
+                    if ((i !== r || j !== c) && state[i][j] === MARKING_QUEEN && labels[i][j] === color) {
                         inConflict = true;
                         break;
                     }
