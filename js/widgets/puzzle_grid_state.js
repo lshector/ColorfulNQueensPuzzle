@@ -50,10 +50,18 @@ export class PuzzleGridState {
     this.clearMarkings();
   }
 
+  resize(newSize) {
+    console.log(`Resizing from ${this.size} to ${newSize}`);
+    this.size = newSize;
+    this.clearColorGroups();
+    this.clearMarkings();
+  }
+
   /**
   * Clears all color groups on the grid.
   */
   clearColorGroups() {
+    console.log("Clearing all color groups");
     this.colorGroups = Array(this.size).fill(null).map(() => Array(this.size).fill(COLOR_GROUP_NONE));
   }
 
@@ -61,6 +69,7 @@ export class PuzzleGridState {
   * Clears the marking state of all cells on the grid.
   */
   clearMarkings() {
+    console.log("Clearing all markings");
     this.markings = Array(this.size).fill(null).map(() => Array(this.size).fill(MARKING_NONE));
   }
 }

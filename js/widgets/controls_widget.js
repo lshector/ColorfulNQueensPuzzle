@@ -4,8 +4,8 @@ import { PuzzleGenerator } from "../algorithms/generation.js"
 import { GameStepsWidget } from "./game_steps_widget.js"
 
 export class ControlsWidget {
-    constructor(puzzle) {
-        this.puzzle = puzzle;
+    constructor(puzzleGrid) {
+        this.puzzleGrid = puzzleGrid;
 
         this.buttons = {
             info: document.getElementById('infoButton'),
@@ -16,53 +16,46 @@ export class ControlsWidget {
             edit: document.getElementById('editButton'),
         };
 
-        this.menus = { // Use a more descriptive name
-            info: new InfoMenuControls(puzzle),
-            play: new PlayMenuControls(puzzle),
-            generate: new GenerateMenuControls(puzzle),
-            solve: new SolveMenuControls(puzzle),
-            upload: new UploadMenuControls(puzzle),
-            edit: new EditMenuControls(puzzle),
+        this.modes = {
+            info: new InfoMenuControls(puzzleGrid),
+            play: new PlayMenuControls(puzzleGrid),
+            generate: new GenerateMenuControls(puzzleGrid),
+            solve: new SolveMenuControls(puzzleGrid),
+            upload: new UploadMenuControls(puzzleGrid),
+            edit: new EditMenuControls(puzzleGrid),
         };
 
         for (const buttonName in this.buttons) {
-            this.buttons[buttonName].addEventListener('click', () => this.showMenu(buttonName));
+            this.buttons[buttonName].addEventListener('click', () => this.setMode(buttonName));
         }
     }
 
-    showMenu(menuName) {
-        this.hideAllMenus();
-        this.unselectAllButtons();
-
-        const menu = this.menus[menuName]; // Get menu reference
-
-        if (menu) {
-            menu.show();
-            this.buttons[menuName].classList.add('selected');
-        } else {
-            console.error(`Menu with name ${menuName} not found.`);
+    setMode(modeName) {
+        // hide all menus
+        for (const menu in this.modes) {
+            this.modes[menu].hide();
         }
 
-        this.puzzle.currentMode = menuName;
-    }
-
-    hideAllMenus() {
-        for (const menu in this.menus) {
-            this.menus[menu].hide();
-        }
-    }
-
-    unselectAllButtons() {
+        // unselect all mode buttons
         for (const button in this.buttons) {
             this.buttons[button].classList.remove('selected');
+        }
+
+        const menu = this.modes[modeName];
+        if (menu) {
+            // configure controls according to the desired mode
+            menu.show();
+            this.buttons[modeName].classList.add('selected');
+            this.puzzleGrid.setOnClick(menu.onClick);
+        } else {
+            console.error(`Mode with name ${modeName} not found.`);
         }
     }
 }
 
-// Abstract base class for Menu Controls (DRY principle)
 class MenuControls {
-    constructor(puzzle, menuId) {
-        this.puzzle = puzzle;
+    constructor(puzzleGrid, menuId) {
+        this.puzzleGrid = puzzleGrid;
         this.menu = document.getElementById(menuId);
     }
 
@@ -73,41 +66,64 @@ class MenuControls {
     show() {
         this.menu.style.display = 'block';
     }
+
+    onClick(puzzleGrid, row, col) {
+        console.log(`Clicked on (${row}, ${col})`);
+    }
 }
 
 class InfoMenuControls extends MenuControls {
-    constructor(puzzle) {
-        super(puzzle, 'info-menu'); // Call the super constructor
+    constructor(puzzleGrid) {
+        super(puzzleGrid, 'info-menu');
     }
 }
 
 class PlayMenuControls extends MenuControls {
-    constructor(puzzle) {
-        super(puzzle, 'play-menu'); // Call the super constructor
-        this.resetButton = document.getElementById('resetButton');
-        this.hintButton = document.getElementById('hintButton');
+    constructor(puzzleGrid) {
+        super(puzzleGrid, 'play-menu');
 
+        this.hintButton = document.getElementById('hintButton');
+        this.resetButton = document.getElementById('resetButton');
         this.resetButton.addEventListener('click', () => this.handleResetButtonClick());
     }
 
     handleResetButtonClick() {
-        const confirmed = confirm("Reset your progress in trying to solve the puzzle?");
+        const confirmed = confirm("Reset your progress in trying to solve the puzzleGrid?");
         if (confirmed) {
-            this.puzzle.clearState();
+            this.puzzleGrid.clearMarkings();
         }
+    }
+
+    onClick(puzzleGrid, row, col) {
+        // TODO: check if the move is valid given current conflicting cells
+
+        // make the move
+        const NUM_MARKINGS = 3; // TODO: shouldn't have this constant defined here
+        const currMarking = puzzleGrid.getMarkingAt(row, col);
+        const newMarking = (currMarking + 1) % NUM_MARKINGS;
+        console.log(`Cycling marking at ${row}, ${col} from ${currMarking} to ${newMarking}`);
+
+        puzzleGrid.setMarkingAt(row, col, newMarking);
+
+        // TODO: update highlighted cells
+
+        puzzleGrid.render();
+
+        // check if puzzle is complete
     }
 }
 
 class GenerateMenuControls extends MenuControls {
-    constructor(puzzle) {
-        super(puzzle, 'generate-menu');
-        this.stepsWidget = new GameStepsWidget('game-steps-container-generate', this.puzzle);
-        this.generateButton = this.menu.querySelector('.button'); // Use this.menu here!
-        this.sizeInput = this.menu.querySelector('#size');      // Use this.menu here!
+    constructor(puzzleGrid) {
+        super(puzzleGrid, 'generate-menu');
+        this.stepsWidget = new GameStepsWidget('game-steps-container-generate', this.puzzleGrid);
+
+        this.sizeInput = this.menu.querySelector('#size');
         this.seedInput = this.menu.querySelector('#seed');
         this.maxAttemptsInput = this.menu.querySelector('#max-attempts');
         this.batchInput = this.menu.querySelector('#batch');
 
+        this.generateButton = this.menu.querySelector('.button');
         this.generateButton.addEventListener('click', () => {
             const N = parseInt(this.sizeInput.value);
             const seed = this.seedInput.value || 'colored-n-queens';
@@ -119,7 +135,7 @@ class GenerateMenuControls extends MenuControls {
     }
 
     async generatePuzzle(N, seed, maxAttempts, batch) {
-        console.log(`Generating puzzle with N=${N}, seed='${seed}', maxAttempts=${maxAttempts}, batch=${batch}`);
+        console.log(`Generating puzzleGrid with N=${N}, seed='${seed}', maxAttempts=${maxAttempts}, batch=${batch}`);
 
         const generator = new PuzzleGenerator();
 
@@ -127,16 +143,16 @@ class GenerateMenuControls extends MenuControls {
         try {
             const result = await generator.run(N, this.stepsWidget, seed, maxAttempts);
 
-            console.log("Puzzle generated successfully:", result.puzzle);
+            console.log("Puzzle generated successfully:", result.puzzleGrid);
             console.log("Stats:", result.stats);
             //console.log("Event Log:", eventLog);
-            this.puzzle = result.puzzle;
+            this.puzzleGrid = result.puzzleGrid;
 
             console.log(result)
 
             console.log(result)
 
-            this.stepsWidget.puzzle = this.puzzle;
+            this.stepsWidget.puzzleGrid = this.puzzleGrid;
             this.stepsWidget.updateSliderMax();
         } catch (error) {
             console.error("Puzzle generation failed:", error);
@@ -146,9 +162,9 @@ class GenerateMenuControls extends MenuControls {
 }
 
 class SolveMenuControls extends MenuControls {
-    constructor(puzzle) {
-        super(puzzle, 'solve-menu');
-        this.stepsWidget = new GameStepsWidget('game-steps-container-solve', this.puzzle);
+    constructor(puzzleGrid) {
+        super(puzzleGrid, 'solve-menu');
+        this.stepsWidget = new GameStepsWidget('game-steps-container-solve', this.puzzleGrid);
 
         this.backtrackingButton = document.getElementById('backtrackingButton');
         this.deductiveButton = document.getElementById('deductiveButton');
@@ -161,11 +177,11 @@ class SolveMenuControls extends MenuControls {
 
     runAlgorithm(algorithm) {
         this.selectedAlgorithm = algorithm;
-        this.puzzle.clearState();
+        this.puzzleGrid.clearState();
         this.stepsWidget.clearSteps();
 
         if (algorithm === 'backtracking') {
-            const result = solvePuzzleBacktracking(this.puzzle.N, this.puzzle.labels, this.stepsWidget);
+            const result = solvePuzzleBacktracking(this.puzzleGrid.N, this.puzzleGrid.labels, this.stepsWidget);
 
             if (result.solved) {
                 console.log("Solution found:", result.solution);
@@ -175,7 +191,7 @@ class SolveMenuControls extends MenuControls {
 
             this.stepsWidget.updateSliderMax();
         } else if (algorithm === 'deductive') {
-            const result = solvePuzzleDeductive(this.puzzle, this.stepsWidget);
+            const result = solvePuzzleDeductive(this.puzzleGrid, this.stepsWidget);
 
             if (result.solved) {
                 console.log("Solution found:", result.solution);
@@ -189,23 +205,23 @@ class SolveMenuControls extends MenuControls {
 }
 
 class UploadMenuControls extends MenuControls {
-    constructor(puzzle) {
-        super(puzzle, 'upload-menu');
+    constructor(puzzleGrid) {
+        super(puzzleGrid, 'upload-menu');
         // Add upload-specific logic here if needed
     }
 }
 
 class EditMenuControls extends MenuControls {
-    constructor(puzzle) {
-        super(puzzle, 'edit-menu');
-        this.clearGridButton = document.getElementById('clearGridButton'); // Direct reference
+    constructor(puzzleGrid) {
+        super(puzzleGrid, 'edit-menu');
+        this.clearGridButton = document.getElementById('clearGridButton');
         this.clearGridButton.addEventListener('click', () => this.handleClearGridButtonClick());
     }
 
     handleClearGridButtonClick() {
-        const confirmed = confirm("Clear all puzzle labels?");
+        const confirmed = confirm("Clear all color group assignments?");
         if (confirmed) {
-            this.puzzle.clearLabels();
+            this.puzzleGrid.clearColorGroups();
         }
     }
 }

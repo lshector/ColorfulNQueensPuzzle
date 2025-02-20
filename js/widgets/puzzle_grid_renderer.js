@@ -7,7 +7,7 @@ export const DEFAULT_COLOR_SCHEME = [
 ];
 
 export const MARKINGS_TO_TEXT = {
-  [MARKING_NONE]: '',
+  [MARKING_NONE]: ' ',
   [MARKING_X]: 'x',
   [MARKING_QUEEN]: '♛'
 }
@@ -24,7 +24,12 @@ export class PuzzleGridRenderer {
         gridUpdate.textContent = MARKINGS_TO_TEXT[rendererUpdate.marking];
       }
       if (rendererUpdate.colorGroup !== null) {
-        gridUpdate.backgroundColor = DEFAULT_COLOR_SCHEME[rendererUpdate.colorGroup];
+        if (rendererUpdate.colorGroup === -1) {
+          gridUpdate.backgroundColor = 'white';
+        }
+        else {
+          gridUpdate.backgroundColor = DEFAULT_COLOR_SCHEME[rendererUpdate.colorGroup];
+        }
       }
       gridUpdatesList.push(gridUpdate);
     }

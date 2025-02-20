@@ -38,6 +38,7 @@
    * @param {number} size The new size of the grid (number of rows and columns).
    */
   resizeGrid(size) {
+    console.log(`Resizing grid from ${this.size} to ${size}`);
     this.size = size;
     this._grid.innerHTML = '';
 

@@ -1,5 +1,5 @@
 import { PuzzleGridRenderer } from "./puzzle_grid_renderer.js";
-import { MARKING_NONE, PuzzleGridState } from "./puzzle_grid_state.js";
+import { MARKING_NONE, MARKING_QUEEN, PuzzleGridState } from "./puzzle_grid_state.js";
 import { PuzzleGridWidget } from "./puzzle_grid_widget.js";
 
 export class PuzzleGrid {
@@ -13,6 +13,7 @@ export class PuzzleGrid {
     this._widget = new PuzzleGridWidget(containerId);
     this._renderer = new PuzzleGridRenderer();
     this._state = new PuzzleGridState();
+    this._updates = [];
   }
 
   /**
@@ -35,25 +36,43 @@ export class PuzzleGrid {
 
   }
 
-  getRenderer() {
-
+  getMarkingAt(row, col) {
+    return this._state.markings[row][col];
   }
 
-  getWidget() {
-
+  setMarkingAt(row, col, newMarking) {
+    this._state.markings[row][col] = newMarking;
+    this._updates.push({ row, col, marking: newMarking });
   }
 
-  getState() {
+  clearMarkings() {
+    this._state.clearMarkings();
+  }
 
+  clearColorGroups() {
+    this._state.clearColorGroups();
+    this.loadPuzzle(this._state.colorGroups);
+  }
+
+  setOnClick(callback) {
+    this._boundClickHandler = (i, j) => callback(this, i, j);
+    this._widget.setOnClick(this._boundClickHandler);
   }
 
   loadPuzzle(colorGroups) {
-    this._widget.resizeGrid(colorGroups.length);
+    console.log(`Loading puzzle ${colorGroups}`);
 
-    let updates = []
+    const newSize = colorGroups.length;
+    if (newSize !== this._widget.size) {
+      this._widget.resizeGrid(newSize);
+      this._state.resize(newSize);
+    }
+
+    // create updates for renderer
     for (let i = 0; i < this._widget.size; ++i) {
       for (let j = 0; j < this._widget.size; ++j) {
-        updates.push({
+        this._state.colorGroups[i][j] = colorGroups[i][j];
+        this._updates.push({
           row: i, col: j,
           marking: MARKING_NONE,
           colorGroup: colorGroups[i][j]
@@ -61,6 +80,11 @@ export class PuzzleGrid {
       }
     }
 
-    this._renderer.updateGrid(this._widget, updates);
+    this.render();
+  }
+
+  render() {
+    this._renderer.updateGrid(this._widget, this._updates);
+    this._updates = [];
   }
 };
