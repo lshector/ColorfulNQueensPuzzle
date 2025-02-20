@@ -2,6 +2,7 @@ import { solvePuzzleBacktracking } from "../algorithms/backtracking.js"
 import { solvePuzzleDeductive } from "../algorithms/deductive.js"
 import { PuzzleGenerator } from "../algorithms/generation.js"
 import { GameStepsWidget } from "./game_steps_widget.js"
+import { COLOR_GROUP_NONE } from "./puzzle_grid_state.js";
 
 export class ControlsWidget {
     constructor(puzzleGrid) {
@@ -46,7 +47,9 @@ export class ControlsWidget {
             // configure controls according to the desired mode
             menu.show();
             this.buttons[modeName].classList.add('selected');
+            this.puzzleGrid.clearMarkings();
             this.puzzleGrid.setOnClick(menu.onClick);
+            this.puzzleGrid.render();
         } else {
             console.error(`Mode with name ${modeName} not found.`);
         }
@@ -91,6 +94,7 @@ class PlayMenuControls extends MenuControls {
         const confirmed = confirm("Reset your progress in trying to solve the puzzleGrid?");
         if (confirmed) {
             this.puzzleGrid.clearMarkings();
+            this.puzzleGrid.render();
         }
     }
 
@@ -222,6 +226,17 @@ class EditMenuControls extends MenuControls {
         const confirmed = confirm("Clear all color group assignments?");
         if (confirmed) {
             this.puzzleGrid.clearColorGroups();
+            this.puzzleGrid.render();
         }
+    }
+
+    onClick(puzzleGrid, row, col) {
+        // cycle through color groups
+        const currColor = puzzleGrid.getColorGroupAt(row, col);
+        const newColor = (currColor === puzzleGrid.size()-1) ? COLOR_GROUP_NONE : (currColor + 1);
+        console.log(`Cycling color group at ${row}, ${col} from ${currColor} to ${newColor}`);
+
+        puzzleGrid.setColorGroupAt(row, col, newColor);
+        puzzleGrid.render();
     }
 }

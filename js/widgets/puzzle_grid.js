@@ -1,5 +1,5 @@
 import { PuzzleGridRenderer } from "./puzzle_grid_renderer.js";
-import { MARKING_NONE, MARKING_QUEEN, PuzzleGridState } from "./puzzle_grid_state.js";
+import { COLOR_GROUP_NONE, MARKING_NONE, MARKING_QUEEN, PuzzleGridState } from "./puzzle_grid_state.js";
 import { PuzzleGridWidget } from "./puzzle_grid_widget.js";
 
 export class PuzzleGrid {
@@ -28,12 +28,27 @@ export class PuzzleGrid {
     return PuzzleGrid._instances[containerId];
   }
 
-  updateMarkings(updates) {
-
+  size() {
+    return this._widget.size;
   }
 
-  updateColorGroups(updates) {
+  getColorGroupAt(row, col) {
+    return this._state.colorGroups[row][col];
+  }
 
+  setColorGroupAt(row, col, newColorGroup) {
+    this._state.colorGroups[row][col] = newColorGroup;
+    this.enqueueRendererUpdate_({ row, col, colorGroup: newColorGroup });
+  }
+
+  clearColorGroups() {
+    this._state.clearColorGroups();
+
+    for (let i = 0; i < this.size(); ++i) {
+      for (let j = 0; j < this.size(); ++j) {
+        this.setColorGroupAt(i, j, COLOR_GROUP_NONE);
+      }
+    }
   }
 
   getMarkingAt(row, col) {
@@ -42,16 +57,17 @@ export class PuzzleGrid {
 
   setMarkingAt(row, col, newMarking) {
     this._state.markings[row][col] = newMarking;
-    this._updates.push({ row, col, marking: newMarking });
+    this.enqueueRendererUpdate_({ row, col, marking: newMarking });
   }
 
   clearMarkings() {
     this._state.clearMarkings();
-  }
 
-  clearColorGroups() {
-    this._state.clearColorGroups();
-    this.loadPuzzle(this._state.colorGroups);
+    for (let i = 0; i < this.size(); ++i) {
+      for (let j = 0; j < this.size(); ++j) {
+        this.setMarkingAt(i, j, MARKING_NONE);
+      }
+    }
   }
 
   setOnClick(callback) {
@@ -59,24 +75,19 @@ export class PuzzleGrid {
     this._widget.setOnClick(this._boundClickHandler);
   }
 
-  loadPuzzle(colorGroups) {
+  setAllColorGroups(colorGroups) {
     console.log(`Loading puzzle ${colorGroups}`);
 
     const newSize = colorGroups.length;
-    if (newSize !== this._widget.size) {
+    if (newSize !== this.size()) {
       this._widget.resizeGrid(newSize);
       this._state.resize(newSize);
     }
 
-    // create updates for renderer
-    for (let i = 0; i < this._widget.size; ++i) {
-      for (let j = 0; j < this._widget.size; ++j) {
-        this._state.colorGroups[i][j] = colorGroups[i][j];
-        this._updates.push({
-          row: i, col: j,
-          marking: MARKING_NONE,
-          colorGroup: colorGroups[i][j]
-        });
+    // create updates to set each cell to the new color group
+    for (let i = 0; i < this.size(); ++i) {
+      for (let j = 0; j < this.size(); ++j) {
+        this.setColorGroupAt(i, j, colorGroups[i][j]);
       }
     }
 
@@ -84,7 +95,12 @@ export class PuzzleGrid {
   }
 
   render() {
+    console.log(`Rending ${this._updates.length} updates`)
     this._renderer.updateGrid(this._widget, this._updates);
     this._updates = [];
+  }
+
+  enqueueRendererUpdate_(update) {
+    this._updates.push(update);
   }
 };

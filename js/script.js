@@ -12,7 +12,7 @@ const DEFAULT_PUZZLE = [
     [4, 4, 4, 5, 5, 5, 5, 5]
 ];
 let puzzleGrid = PuzzleGrid.getInstance('grid-container');
-puzzleGrid.loadPuzzle(DEFAULT_PUZZLE);
+puzzleGrid.setAllColorGroups(DEFAULT_PUZZLE);
 
 let puzzleControls = new ControlsWidget(puzzleGrid);
 puzzleControls.buttons.info.click();
