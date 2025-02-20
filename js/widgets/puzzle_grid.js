@@ -38,7 +38,7 @@ export class PuzzleGrid {
 
   setColorGroupAt(row, col, newColorGroup) {
     this._state.colorGroups[row][col] = newColorGroup;
-    this.enqueueRendererUpdate_({ row, col, colorGroup: newColorGroup });
+    this._enqueueRendererUpdate({ row, col, colorGroup: newColorGroup });
   }
 
   clearColorGroups() {
@@ -57,7 +57,7 @@ export class PuzzleGrid {
 
   setMarkingAt(row, col, newMarking) {
     this._state.markings[row][col] = newMarking;
-    this.enqueueRendererUpdate_({ row, col, marking: newMarking });
+    this._enqueueRendererUpdate({ row, col, marking: newMarking });
   }
 
   clearMarkings() {
@@ -100,7 +100,47 @@ export class PuzzleGrid {
     this._updates = [];
   }
 
-  enqueueRendererUpdate_(update) {
+  isSafe(row, col) {
+    const N = this.size();
+
+    // Check column conflicts
+    for (let j = 0; j < N; j++) {
+      if (j !== col && this.getMarkingAt(row, j) === MARKING_QUEEN) return false;
+    }
+
+    // Check row conflicts
+    for (let i = 0; i < N; i++) {
+        if (i !== row && this.getMarkingAt(i, col) === MARKING_QUEEN) return false;
+    }
+
+    // Check diagonal conflicts
+    for (const [dr, dc] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+        const nr = row + dr;
+        const nc = col + dc;
+        const isInbounds = nr >= 0 && nr < N && nc >= 0 && nc < N;
+        if (isInbounds && this.getMarkingAt(nr, nc) === MARKING_QUEEN) {
+            return false;
+        }
+    }
+
+    // Check color conflicts
+    const color = this.getColorGroupAt(row, col);
+    if (color !== -1) {
+        for (let i = 0; i < N; i++) {
+            for (let j = 0; j < N; j++) {
+                if ((i !== row || j !== col) &&
+                    this.getMarkingAt(i, j) === MARKING_QUEEN &&
+                    this.getColorGroupAt(i, j) === color) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+  }
+
+  _enqueueRendererUpdate(update) {
     this._updates.push(update);
   }
 };

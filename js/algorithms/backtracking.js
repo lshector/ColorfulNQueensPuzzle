@@ -1,13 +1,14 @@
 import { MARKING_NONE, MARKING_QUEEN } from "../widgets/puzzle_grid_state.js"
-import { isSafe } from "./logic.js";
 
-export function solvePuzzleBacktracking(N, labels, stepsWidget) {    
+export function solvePuzzleBacktracking(puzzleGrid, stepsWidget) {
+    const N = puzzleGrid.size();
+
     function solveBacktrackingRecursive(state, row) {
         if (row === N) {
             const solution = [];
             for (let i = 0; i < N; i++) {
                 for (let j = 0; j < N; j++) {
-                    if (state[i][j] === STATE_QUEEN) {
+                    if (puzzleGrid.getMarkingAt(i, j) === MARKING_QUEEN) {
                         solution.push(`${i},${j}`);
                     }
                 }
@@ -16,8 +17,8 @@ export function solvePuzzleBacktracking(N, labels, stepsWidget) {
         }
 
         for (let col = 0; col < N; col++) {
-            if (isSafe(N, state, labels, row, col)) {
-                state[row][col] = STATE_QUEEN;
+            if (puzzleGrid.isSafe(row, col)) {
+                puzzleGrid.setMarkingAt(row, col, MARKING_QUEEN);
                 if (stepsWidget) {
                     stepsWidget.push({ action: "Place Queen", row, col });
                 }
@@ -26,7 +27,7 @@ export function solvePuzzleBacktracking(N, labels, stepsWidget) {
                 if (recursiveSolution) {
                     return recursiveSolution;
                 } else {
-                    state[row][col] = STATE_EMPTY;
+                    puzzleGrid.setMarkingAt(row, col, MARKING_NONE);
                     if (stepsWidget) {
                         stepsWidget.push({ action: "Backtrack", row, col });
                     }
@@ -45,7 +46,7 @@ export function solvePuzzleBacktracking(N, labels, stepsWidget) {
     if (stepsWidget) {
         stepsWidget.push({ action: "Done" });
     }
-    
+
     if (solution) {
         return { solution, solved: true };
     } else {
