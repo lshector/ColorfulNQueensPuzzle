@@ -205,6 +205,8 @@ class SolveMenuControls extends MenuControls {
 
             this.stepsWidget.updateSliderMax();
         }
+
+        this.puzzleGrid.render();
     }
 }
 

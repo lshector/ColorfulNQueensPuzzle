@@ -13,11 +13,29 @@ export const MARKINGS_TO_TEXT = {
 }
 
 export class PuzzleGridRenderer {
-  updateGrid(gridWidget, updates) {
-    let gridUpdatesList = [];
+  constructor(gridWidget) {
+    this._gridWidget = gridWidget;
+    this._renderPeriodMs = 33;
+    this._renderPending = false;
+    this._pendingUpdates = [];
+  }
 
+  update(data) {
+    this._pendingUpdates.push(data);
+
+    if (!this._renderPending) {
+      this._renderPending = true;
+      this.render();
+
+      setTimeout(() => { this._renderPending = false; }, this._renderPeriodMs);
+    }
+  }
+
+  render() {
     // TODO: add updates for grid cell borders
-    for (const rendererUpdate of updates) {
+    console.log("Rendering...");
+    let gridUpdatesList = [];
+    for (const rendererUpdate of this._pendingUpdates) {
       let [row, col] = [rendererUpdate.row, rendererUpdate.col];
       let gridUpdate = { row, col };
       if (rendererUpdate.marking !== null) {
@@ -34,7 +52,8 @@ export class PuzzleGridRenderer {
       gridUpdatesList.push(gridUpdate);
     }
 
-    gridWidget.updateGrid(gridUpdatesList);
+    this._gridWidget.updateGrid(gridUpdatesList);
+    this._pendingUpdates = [];
   }
 
   updateEntireGrid(newMarkings, newLabels) {

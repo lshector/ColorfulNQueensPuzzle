@@ -1,10 +1,8 @@
-import { GameStepsList } from "./game_steps_list.js";
-
 export class GameStepsWidget {
   constructor(containerId, puzzleGrid) {
     this.containerId = containerId;
     this.puzzleGrid = puzzleGrid;
-    this.stepsList = [];
+    this.steps = [];
     this.container = document.getElementById(containerId);
     this.slider = null;
     this.sliderValue = null;

@@ -12,9 +12,8 @@ export class PuzzleGrid {
 
   constructor(containerId) {
     this._widget = new PuzzleGridWidget(containerId);
-    this._renderer = new PuzzleGridRenderer();
+    this._renderer = new PuzzleGridRenderer(this._widget);
     this._state = new PuzzleGridState();
-    this._updates = [];
   }
 
   /**
@@ -39,7 +38,7 @@ export class PuzzleGrid {
 
   setColorGroupAt(row, col, newColorGroup) {
     this._state.colorGroups[row][col] = newColorGroup;
-    this._enqueueRendererUpdate({ row, col, colorGroup: newColorGroup });
+    this._renderer.update({ row, col, colorGroup: newColorGroup });
   }
 
   clearColorGroups() {
@@ -58,7 +57,7 @@ export class PuzzleGrid {
 
   setMarkingAt(row, col, newMarking) {
     this._state.markings[row][col] = newMarking;
-    this._enqueueRendererUpdate({ row, col, marking: newMarking });
+    this._renderer.update({ row, col, marking: newMarking });
   }
 
   clearMarkings() {
@@ -91,21 +90,13 @@ export class PuzzleGrid {
         this.setColorGroupAt(i, j, colorGroups[i][j]);
       }
     }
-
-    this.render();
-  }
-
-  render() {
-    console.log(`Rending ${this._updates.length} updates`)
-    this._renderer.updateGrid(this._widget, this._updates);
-    this._updates = [];
   }
 
   isSafe(row, col) {
     return isSafe(this, row, col);
   }
 
-  _enqueueRendererUpdate(update) {
-    this._updates.push(update);
+  render() {
+    this._renderer.render();
   }
 };
