@@ -1,261 +1,273 @@
-export class GameStep {
-    constructor(action, note, args) {
-        this.action = null;
-        this.note = null;
-        this.args = null;
-    }
-}
+import { GameStepsList } from "./game_steps_list.js";
 
 export class GameStepsWidget {
-    constructor(containerId, puzzle) {
-        this.containerId = containerId;
-        this.steps = [];
-        this.puzzle = puzzle;
-        this.container = document.getElementById(containerId);
-        this.animationFrameId = null;
+  constructor(containerId, puzzleGrid) {
+    this.containerId = containerId;
+    this.puzzleGrid = puzzleGrid;
+    this.stepsList = [];
+    this.container = document.getElementById(containerId);
+    this.slider = null;
+    this.sliderValue = null;
+    this.playButton = null;
+    this.plusButton = null;
+    this.minusButton = null;
+    this.stepsText = null;
+    this.playing = false;
+    this.animationFrameId = null;
 
-        if (!this.container) {
-            console.error("Container not found:", containerId);
-            return;
-        }
-
-        this.playing = false;
-        this.intervalId;
-
-        this.loadHTML().then(() => {  // Load HTML and THEN initialize
-          this.initialize();
-        });
+    if (!this.container) {
+      console.error("Container not found:", containerId);
+      return;
     }
 
-    push(data) {
-        this.steps.push(data);
+    this.loadHTML()
+      .then(() => this.initialize())
+      .catch(error => console.error("Error during initialization:", error));
+  }
+
+  push(data) {
+    this.steps.push(data);
+    this.updateSliderMax(); // Update slider max when new steps are added
+  }
+
+  clearSteps() {
+    this.steps = [];
+    this.updateSliderMax(); // Update slider max when steps are cleared
+  }
+
+  async loadHTML() {
+    try {
+      const response = await fetch('html/algorithm_steps_widget.html');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const html = await response.text();
+      this.container.innerHTML = html;
+      this.cacheElementReferences();
+    } catch (error) {
+      console.error("Error loading HTML:", error);
+      throw error; // Re-throw the error to be caught by the caller
+    }
+  }
+
+  cacheElementReferences() {
+    this.slider = this.container.querySelector('.step-slider');
+    this.sliderValue = this.container.querySelector('.slider-value');
+    this.playButton = this.container.querySelector('.play-button');
+    this.plusButton = this.container.querySelector('.plus-button');
+    this.minusButton = this.container.querySelector('.minus-button');
+    this.stepsText = this.container.querySelector('.game-steps-text');
+
+    if (!this.slider || !this.sliderValue || !this.playButton || !this.plusButton || !this.minusButton || !this.stepsText) {
+      const errorMessage = "Required elements not found in container:" + this.containerId;
+      console.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }
+
+  initialize() {
+    this.updateSliderMax();
+    this.initializeSlider();
+    this.initializePlayButton();
+  }
+
+  updateSliderValue(newCount) {
+    let prevCount = this.slider.value;
+    if (prevCount === newCount) {
+        return;
     }
 
-    clearSteps() {
-        this.steps = [];
-    }
+    // update slider HTML elements
+    this.slider.value = newCount;
+    this.sliderValue.value = newCount;
 
-    loadHTML() {
-        return fetch('html/algorithm_steps_widget.html')
-            .then(response => response.text())
-            .then(html => {
-                this.container.innerHTML = html; // Add the widget HTML
-                // Now that HTML is loaded, get element references:
-                this.slider = this.container.querySelector('.step-slider');
-                this.sliderValue = this.container.querySelector('.slider-value');
-                this.playButton = this.container.querySelector('.play-button');
-                this.plusButton = this.container.querySelector('.plus-button');
-                this.minusButton = this.container.querySelector('.minus-button');
-                this.stepsText = this.container.querySelector('.game-steps-text');
+    // TODO: optimize traveling backwards
+//    if (newCount < prevCount) {
+//        prevCount = 0;
+//    }
 
-                if (!this.slider || !this.sliderValue || !this.playButton || !this.plusButton || !this.minusButton || !this.stepsText) {
-                    console.error("Required elements not found in container:", this.containerId);
-                    return Promise.reject("Elements not found"); // Reject if elements missing
+    // replay the game steps
+//    for (let currCount = prevCount; currCount <= newCount; ++currCount) {
 
-                }
-            }).catch(error => {
-              console.error("Error loading HTML or elements:", error);
-            });
-    }
+//    }
 
-    initialize() {
-        this.updateSliderMax();
-        this.initializeSlider();
-        this.initializePlayButton();
-    }
+//    this.puzzleGrid.render();
+  }
 
-    updateSliderValue(newValue) {
-        //const prevValue = this.slider.value;
-        this.slider.value = newValue;
-        this.sliderValue.value = newValue;
-        this.updatePuzzleState(newValue);
-    }
+  updateSliderMax() {
+    const max = this.steps.length > 0 ? this.steps.length - 1 : 0;
+    this.slider.max = max;
+    this.updateSliderValue(Math.min(this.slider.value, max));
+  }
 
-    updateSliderMax() {
-        if (this.steps && this.steps.length > 0) {
-            this.slider.max = this.steps.length - 1;
-            this.updateSliderValue(this.slider.max);
-        } else {
-            this.slider.max = 0;
-            this.updateSliderValue(0);
-        }
-    }
+  initializeSlider() {
+    this.slider.addEventListener('input', () => this.handleSliderInput());
+    this.plusButton.addEventListener('click', () => this.handleStepChange(1));
+    this.minusButton.addEventListener('click', () => this.handleStepChange(-1));
+  }
 
-    initializeSlider() {
-        this.slider.addEventListener('input', () => this.handleSliderInput());
-        this.plusButton.addEventListener('click', () => this.handlePlusMinusClick(1));
-        this.minusButton.addEventListener('click', () => this.handlePlusMinusClick(-1));
-    }
+  handleSliderInput() {
+    this.interruptPlay();
+    this.updateSliderValue(parseInt(this.slider.value, 10)); // Explicitly parse as base 10
+  }
 
-    handleSliderInput() {
-        if (this.playing) {
-            this.interruptPlay();
-        }
-        const stepIndex = parseInt(this.slider.value);
-        this.updateSliderValue(stepIndex);
-    }
+  handleStepChange(direction) {
+    this.interruptPlay();
+    let newStep = parseInt(this.slider.value, 10) + direction;
+    newStep = Math.max(0, Math.min(newStep, this.steps.length - 1));
+    this.updateSliderValue(newStep);
+  }
 
-    handlePlusMinusClick(direction) {
-        this.interruptPlay();
-        let stepIndex = parseInt(this.slider.value);
-        const maxStep = this.steps.length - 1;
-        stepIndex = Math.max(0, Math.min(stepIndex + direction, maxStep));
-        this.updateSliderValue(stepIndex);
-    }
+  initializePlayButton(animationSpeed = 100) {
+    this.playButton.addEventListener('click', () => {
+      this.playing = !this.playing;
+      this.playButton.textContent = this.playing ? "⏸" : "▶️";
 
-
-    initializePlayButton(animationSpeed = 100) {
-        this.playButton.addEventListener('click', () => {
-            this.playing = !this.playing;
-    
-            if (this.playing) {
-                if (this.steps.length === 0) {
-                    return;
-                }
-    
-                this.playButton.textContent = "⏸";
-                let currentStep = parseInt(this.slider.value);
-                const totalSteps = this.steps.length - 1;
-    
-                if (currentStep === totalSteps) {
-                    currentStep = 0;
-                }
-    
-                let startTime;
-    
-                const animate = (timestamp) => {
-                    if (!startTime) startTime = timestamp; // Initialize startTime on the first frame
-                    const elapsedTime = timestamp - startTime;
-    
-                    if (elapsedTime >= animationSpeed) {
-                        startTime = timestamp; // Reset startTime for the next step
-                        currentStep++;
-    
-                        if (currentStep > totalSteps) {
-                            this.interruptPlay();
-                            return;
-                        }
-    
-                        this.updateSliderValue(currentStep);
-    
-                        if (currentStep === totalSteps) {
-                            this.interruptPlay();
-                        }
-                    }
-    
-                    this.animationFrameId = requestAnimationFrame(animate);
-                };
-    
-                this.animationFrameId = requestAnimationFrame(animate);
-    
-            } else {
-                this.interruptPlay();
-            }
-        });
-    }
-    
-    interruptPlay() {
-        console.log("Interrupting play");
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-        }
-        this.animationFrameId = null;
-        this.playButton.textContent = "▶️";
-        this.playing = false;
-    }    
-
-    updatePuzzleState(stepIndex) {
+      if (this.playing) {
         if (this.steps.length === 0) return;
-    
-        const N = this.puzzle.N;
-        const stepsText = this.stepsText;
-        stepsText.value = ""; // Clear steps text
-    
-        const appendLine = (newLine) => {
-            stepsText.value += (stepsText.value ? '\n' : '') + newLine;
-            stepsText.scrollTop = stepsText.scrollHeight;
-        };
-    
-        const handleBeginSolver = () => {
-            this.puzzle.clearState();
-            return new Set();
-        }
 
-        const handleBeginGeneration = () => {
-            this.puzzle.clearState();
-            this.puzzle.clearLabels();
-            return new Set();
-        }
+        let currentStep = parseInt(this.slider.value, 10);
+        if (currentStep === this.steps.length - 1) currentStep = 0;
 
-        const handleDone = () => {
-            return new Set();
-        }
+        let startTime;
+        const animate = (timestamp) => {
+          if (!startTime) startTime = timestamp;
+          const elapsedTime = timestamp - startTime;
 
-        for (let i = 0; i <= stepIndex; i++) {
-            const step = this.steps[i];
-            this.puzzle.highlightedCells = new Set();
-    
-            const actionHandlers = {
-                "Begin Solver": () => handleBeginSolver(),
-                "Begin Generation": () => handleBeginGeneration(),
-                "Place Queen": () => this.puzzle.placeQueenFromSolver(step.row, step.col),
-                "Backtrack": () => this.puzzle.removeQueenFromSolver(step.row, step.col),
-                "addConstraintToRows": () => this.puzzle.addConstraintToRows(step.rows, step.excludeColors),
-                "addConstraintToColumns": () => this.puzzle.addConstraintToColumns(step.cols, step.excludeColors),
-                "addConstraintToCell": () => this.puzzle.addConstraintToCell(step.row, step.col),
-                "removeConstraintFromRows": () => this.puzzle.removeConstraintFromRows(step.rows),
-                "removeConstraintFromColumns": () => this.puzzle.removeConstraintFromColumns(step.cols),
-                "removeConstraintFromCell": () => this.puzzle.removeConstraintFromCell(step.row, step.col),
-                "paintCell": () => this.puzzle.setLabel(step.row, step.col, step.label),
-                "unpaintCell": () => this.puzzle.setLabel(step.row, step.col, -1),
-                "clearLabels": () => this.puzzle.clearLabels(),
-                "Done": () => handleDone()
-            };
-    
-            if (step.action in actionHandlers) {
-                const updatedCells = actionHandlers[step.action]();
-                this.puzzle.highlightedCells = updatedCells;
-                appendLine(this.getActionDescription(step));
+          if (elapsedTime >= animationSpeed) {
+            startTime = timestamp;
+            currentStep++;
+
+            if (currentStep > this.steps.length - 1) {
+              this.interruptPlay();
+              return;
             }
-        }
-    
-        this.puzzle.refreshAppearanceAllLabels();
-        this.puzzle.refreshAppearanceAllCells();
+
+            this.updateSliderValue(currentStep);
+          }
+
+          this.animationFrameId = requestAnimationFrame(animate);
+        };
+
+        this.animationFrameId = requestAnimationFrame(animate);
+      } else {
+        this.interruptPlay();
+      }
+    });
+  }
+
+
+  interruptPlay() {
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
     }
-    
-    // Helper function to generate action descriptions
-    getActionDescription(step) {
-        switch (step.action) {
-            case "Begin Solver":
-                return `Starting solver algorithm`;
-            case "Begin Generation":
-                return `Starting generation algorithm`;
-            case "Place Queen":
-                return `Placed queen at (${step.row}, ${step.col})`;
-            case "Backtrack":
-                return `Backtracking by removing queen from (${step.row}, ${step.col})`;
-            case "addConstraintToRows":
-                return `Marking all cells in row(s) ${step.rows} excluding colors: ${step.excludeColors}`;
-            case "addConstraintToColumns":
-                return `Marking all cells in col(s) ${step.cols} excluding colors: ${step.excludeColors}`;
-            case "addConstraintToCell":
-                return `Marking cell (${step.row}, ${step.col})`;
-            case "removeConstraintFromRows": // New descriptions
-                return `Removing constraints from row(s) ${step.rows}`;
-            case "removeConstraintFromColumns":
-                return `Removing constraints from column(s) ${step.cols}`;
-            case "removeConstraintFromCell":
-                return `Removing constraint from cell (${step.row}, ${step.col})`;
-            case "paintCell":
-                return `Painting cell (${step.row}, ${step.col}) with color ${step.label}`;
-            case "unpaintCell":
-                return `Removing label from cell (${step.row}, ${step.col})`;
-            case "clearLabels":
-                return "Clearing all labels";
-            case "Done":
-                return `Completed algorithm`;
-            default:
-                return `Unknown action ${step.action}`;
-        }
-    }    
+    this.playing = false;
+    this.playButton.textContent = "▶️";
+  }
 }
+
+
+    // updatePuzzleState(stepIndex) {
+    //     if (this.steps.length === 0) return;
+
+    //     const N = this.puzzleGrid.N;
+    //     const stepsText = this.stepsText;
+    //     stepsText.value = ""; // Clear steps text
+
+    //     const appendLine = (newLine) => {
+    //         stepsText.value += (stepsText.value ? '\n' : '') + newLine;
+    //         stepsText.scrollTop = stepsText.scrollHeight;
+    //     };
+
+    //     const handleBeginSolver = () => {
+    //         this.puzzleGrid.clearMarkings();
+    //         return new Set();
+    //     }
+
+    //     const handleBeginGeneration = () => {
+    //         this.puzzleGrid.clearMarkings();
+    //         this.puzzleGrid.clearColorGroups();
+    //         return new Set();
+    //     }
+
+    //     const handleDone = () => {
+    //         return new Set();
+    //     }
+
+    //     for (let i = 0; i <= stepIndex; i++) {
+    //         const step = this.steps[i];
+    //         this.puzzleGrid.highlightedCells = new Set();
+
+    //         const actionHandlers = {
+    //             "Begin Solver": () => this.puzzleGrid.clearMarkings(),
+    //             "Begin Generation": () => {
+    //                 this.puzzleGrid.clearMarkings();
+    //                 this.puzzleGrid.clearColorGroups();
+    //             },
+    //             "Place Queen": () => {
+    //                 const affectedCells = this.puzleGrid.placeQueen(step.row, step.col);
+    //                 for (cell in affectedCells) {
+    //                     this.puzzleGrid.setMarking
+    //                 }
+    //             }
+    //             "Backtrack": () => this.puzzleGrid.removeQueen(step.row, step.col, applyLogicCheck=false),
+
+    //             "addConstraintToRows": () => runner.addConstraintToRows(step.rows, step.excludeColors),
+    //             "addConstraintToColumns": () => runner.addConstraintToColumns(step.cols, step.excludeColors),
+    //             "addConstraintToCell": () => runner.addConstraintToCell(step.row, step.col),
+    //             "removeConstraintFromRows": () => runner.removeConstraintFromRows(step.rows),
+    //             "removeConstraintFromColumns": () => runner.removeConstraintFromColumns(step.cols),
+    //             "removeConstraintFromCell": () => runner.removeConstraintFromCell(step.row, step.col),
+    //             "paintCell": () => runner.setLabel(step.row, step.col, step.label),
+    //             "unpaintCell": () => runner.setLabel(step.row, step.col, -1),
+    //             "clearColorGroups": () => runner.clearColorGroups(),
+    //             "Done": () => runner.done()
+    //         };
+
+    //         if (step.action in actionHandlers) {
+    //             const updatedCells = actionHandlers[step.action]();
+    //             this.puzzleGrid.highlightedCells = updatedCells;
+    //             appendLine(this.getActionDescription(step));
+    //         }
+    //     }
+
+    //     this.puzzleGrid.render();
+    // }
+
+    // // Helper function to generate action descriptions
+    // getActionDescription(step) {
+    //     switch (step.action) {
+    //         case "Begin Solver":
+    //         return `Starting solver algorithm`;
+    //         case "Begin Generation":
+    //         return `Starting generation algorithm`;
+    //         case "Place Queen":
+    //         return `Placed queen at (${step.row}, ${step.col})`;
+    //         case "Backtrack":
+    //         return `Backtracking by removing queen from (${step.row}, ${step.col})`;
+    //         case "addConstraintToRows":
+    //         return `Marking all cells in row(s) ${step.rows} excluding colors: ${step.excludeColors}`;
+    //         case "addConstraintToColumns":
+    //         return `Marking all cells in col(s) ${step.cols} excluding colors: ${step.excludeColors}`;
+    //         case "addConstraintToCell":
+    //         return `Marking cell (${step.row}, ${step.col})`;
+    //         case "removeConstraintFromRows": // New descriptions
+    //         return `Removing constraints from row(s) ${step.rows}`;
+    //         case "removeConstraintFromColumns":
+    //         return `Removing constraints from column(s) ${step.cols}`;
+    //         case "removeConstraintFromCell":
+    //         return `Removing constraint from cell (${step.row}, ${step.col})`;
+    //         case "paintCell":
+    //         return `Painting cell (${step.row}, ${step.col}) with color ${step.label}`;
+    //         case "unpaintCell":
+    //         return `Removing label from cell (${step.row}, ${step.col})`;
+    //         case "clearColorGroups":
+    //         return "Clearing all labels";
+    //         case "Done":
+    //         return `Completed algorithm`;
+    //         default:
+    //         return `Unknown action ${step.action}`;
+    //     }
+    // }
+// }

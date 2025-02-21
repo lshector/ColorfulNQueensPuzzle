@@ -2,6 +2,46 @@ import { solvePuzzleDeductive } from "./deductive.js";
 import { MARKING_NONE, MARKING_QUEEN } from "../widgets/puzzle_grid_state.js"
 import { enableLogging, disableLogging } from "../logger.js"
 
+export function isSafe(puzzleGrid, row, col) {
+    const N = puzzleGrid.size();
+
+    // Check column conflicts
+    for (let j = 0; j < N; j++) {
+        if (j !== col && puzzleGrid.getMarkingAt(row, j) === MARKING_QUEEN) return false;
+    }
+
+    // Check row conflicts
+    for (let i = 0; i < N; i++) {
+        if (i !== row && puzzleGrid.getMarkingAt(i, col) === MARKING_QUEEN) return false;
+    }
+
+    // Check diagonal conflicts
+    for (const [dr, dc] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+        const nr = row + dr;
+        const nc = col + dc;
+        const isInbounds = nr >= 0 && nr < N && nc >= 0 && nc < N;
+        if (isInbounds && puzzleGrid.getMarkingAt(nr, nc) === MARKING_QUEEN) {
+            return false;
+        }
+    }
+
+    // Check color conflicts
+    const color = puzzleGrid.getColorGroupAt(row, col);
+    if (color !== -1) {
+        for (let i = 0; i < N; i++) {
+            for (let j = 0; j < N; j++) {
+                if ((i !== row || j !== col) &&
+                    puzzleGrid.getMarkingAt(i, j) === MARKING_QUEEN &&
+                    puzzleGrid.getColorGroupAt(i, j) === color) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 export function getAffectedCellsFromPlacingQueenAt(N, labels, row, col) {
     const affectedCells = new Set();
 

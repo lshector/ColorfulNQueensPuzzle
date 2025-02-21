@@ -1,6 +1,7 @@
 import { PuzzleGridRenderer } from "./puzzle_grid_renderer.js";
 import { COLOR_GROUP_NONE, MARKING_NONE, MARKING_QUEEN, PuzzleGridState } from "./puzzle_grid_state.js";
 import { PuzzleGridWidget } from "./puzzle_grid_widget.js";
+import { isSafe } from "../algorithms/logic.js";
 
 export class PuzzleGrid {
  /**
@@ -101,43 +102,7 @@ export class PuzzleGrid {
   }
 
   isSafe(row, col) {
-    const N = this.size();
-
-    // Check column conflicts
-    for (let j = 0; j < N; j++) {
-      if (j !== col && this.getMarkingAt(row, j) === MARKING_QUEEN) return false;
-    }
-
-    // Check row conflicts
-    for (let i = 0; i < N; i++) {
-        if (i !== row && this.getMarkingAt(i, col) === MARKING_QUEEN) return false;
-    }
-
-    // Check diagonal conflicts
-    for (const [dr, dc] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
-        const nr = row + dr;
-        const nc = col + dc;
-        const isInbounds = nr >= 0 && nr < N && nc >= 0 && nc < N;
-        if (isInbounds && this.getMarkingAt(nr, nc) === MARKING_QUEEN) {
-            return false;
-        }
-    }
-
-    // Check color conflicts
-    const color = this.getColorGroupAt(row, col);
-    if (color !== -1) {
-        for (let i = 0; i < N; i++) {
-            for (let j = 0; j < N; j++) {
-                if ((i !== row || j !== col) &&
-                    this.getMarkingAt(i, j) === MARKING_QUEEN &&
-                    this.getColorGroupAt(i, j) === color) {
-                    return false;
-                }
-            }
-        }
-    }
-
-    return true;
+    return isSafe(this, row, col);
   }
 
   _enqueueRendererUpdate(update) {
