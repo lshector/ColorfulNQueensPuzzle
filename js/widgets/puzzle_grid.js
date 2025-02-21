@@ -1,7 +1,6 @@
 import { PuzzleGridRenderer } from "./puzzle_grid_renderer.js";
 import { COLOR_GROUP_NONE, MARKING_NONE, MARKING_QUEEN, PuzzleGridState } from "./puzzle_grid_state.js";
 import { PuzzleGridWidget } from "./puzzle_grid_widget.js";
-import { isSafe } from "../algorithms/logic.js";
 
 export class PuzzleGrid {
  /**
@@ -90,10 +89,6 @@ export class PuzzleGrid {
         this.setColorGroupAt(i, j, colorGroups[i][j]);
       }
     }
-  }
-
-  isSafe(row, col) {
-    return isSafe(this, row, col);
   }
 
   render() {
