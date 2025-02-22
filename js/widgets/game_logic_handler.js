@@ -1,7 +1,7 @@
 import { isSafe, getAffectedCellsFromPlacingQueenAt } from "../algorithms/logic.js";
 import { MARKING_NONE, MARKING_X, MARKING_QUEEN } from "./puzzle_grid_state.js"
 
-export class GameStepHandler {
+export class GameLogicHandler {
     constructor(puzzleGrid) {
         this._puzzleGrid = puzzleGrid;
         // TODO: scan puzzle grid for actual number of placed queens

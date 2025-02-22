@@ -1,4 +1,4 @@
-import { GameStepHandler } from "../widgets/game_step_handler.js";
+import { GameLogicHandler } from "../widgets/game_logic_handler.js";
 
 function _formatCandidateMovesStr(candidateMoves) {
     let candidateMovesStr = ""
@@ -10,15 +10,15 @@ function _formatCandidateMovesStr(candidateMoves) {
     return candidateMovesStr;
 }
 
-function _generateBacktrackingMovesByRow(gameStepHandler, index) {
+function _generateBacktrackingMovesByRow(gameLogicHandler, index) {
     const row = index;
-    if (row >= gameStepHandler.puzzleSize()) {
+    if (row >= gameLogicHandler.puzzleSize()) {
         return [];
     }
 
     const candidateMoves = [];
-    for (let col = 0; col < gameStepHandler.puzzleSize(); col++) {
-        if (gameStepHandler.isSafe(row, col)) {
+    for (let col = 0; col < gameLogicHandler.puzzleSize(); col++) {
+        if (gameLogicHandler.isSafe(row, col)) {
             candidateMoves.push([ row, col ]);
         }
     }
@@ -26,15 +26,15 @@ function _generateBacktrackingMovesByRow(gameStepHandler, index) {
     return candidateMoves;
 }
 
-function _generateBacktrackingMovesByCol(gameStepHandler, index) {
+function _generateBacktrackingMovesByCol(gameLogicHandler, index) {
     const col = index;
-    if (col >= gameStepHandler.puzzleSize()) {
+    if (col >= gameLogicHandler.puzzleSize()) {
         return [];
     }
 
     const candidateMoves = [];
-    for (let row = 0; row < gameStepHandler.puzzleSize(); row++) {
-        if (gameStepHandler.isSafe(row, col)) {
+    for (let row = 0; row < gameLogicHandler.puzzleSize(); row++) {
+        if (gameLogicHandler.isSafe(row, col)) {
             candidateMoves.push([ row, col ]);
         }
     }
@@ -42,25 +42,25 @@ function _generateBacktrackingMovesByCol(gameStepHandler, index) {
     return candidateMoves;
 }
 
-function _generateBacktrackingMoves(gameStepHandler, method) {
-    const index = gameStepHandler.numPlacedQueens();
+function _generateBacktrackingMoves(gameLogicHandler, method) {
+    const index = gameLogicHandler.numPlacedQueens();
     return {
         row        : _generateBacktrackingMovesByRow,
         column     : _generateBacktrackingMovesByCol
-    }[method](gameStepHandler, index);
+    }[method](gameLogicHandler, index);
 }
 
 export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod = 'row') {
-    const gameStepHandler = new GameStepHandler(puzzleGrid);
+    const gameLogicHandler = new GameLogicHandler(puzzleGrid);
     stepsWidget.push({
         action: 'message',
         message: "Starting backtracking solver"
     });
 
     function solveBacktrackingRecursive() {
-        const candidateMoves = _generateBacktrackingMoves(gameStepHandler, moveRankMethod);
+        const candidateMoves = _generateBacktrackingMoves(gameLogicHandler, moveRankMethod);
         const candidateMovesStr = _formatCandidateMovesStr(candidateMoves);
-        const level = gameStepHandler.numPlacedQueens();
+        const level = gameLogicHandler.numPlacedQueens();
 
         if (candidateMoves.length > 0) {
             stepsWidget.push({
@@ -83,14 +83,14 @@ export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod 
                 action: "placeQueen",
                 args: { row, col }
             });
-            gameStepHandler.placeQueen(row, col);
+            gameLogicHandler.placeQueen(row, col);
 
-            if (gameStepHandler.isSolved()) {
+            if (gameLogicHandler.isSolved()) {
                 stepsWidget.push({
                     message: "Found a solution!",
                     action: 'highlightSolution'
                 });
-                return [...gameStepHandler.getPlacedQueens()];
+                return [...gameLogicHandler.getPlacedQueens()];
             }
 
             const recursiveSolution = solveBacktrackingRecursive();
@@ -103,7 +103,7 @@ export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod 
                 action: "removeQueen",
                 args: { row, col }
             });
-            gameStepHandler.removeQueen(row, col);
+            gameLogicHandler.removeQueen(row, col);
         }
 
         return null;

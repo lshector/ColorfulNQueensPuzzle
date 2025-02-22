@@ -1,10 +1,10 @@
-import { GameStepHandler } from "../widgets/game_step_handler.js";
+import { GameLogicHandler } from "../widgets/game_logic_handler.js";
 
-function deduceQueenPlacement(gameStepHandler, stepsWidget) {
+function deduceQueenPlacement(gameLogicHandler, stepsWidget) {
   let numDeductions = 0;
-  const emptyCellsPerColor = gameStepHandler.getEmptyCellsPerColor();
+  const emptyCellsPerColor = gameLogicHandler.getEmptyCellsPerColor();
 
-  const matchingColors = Array.from(Array(gameStepHandler.puzzleSize()).keys()).filter(
+  const matchingColors = Array.from(Array(gameLogicHandler.puzzleSize()).keys()).filter(
     (label) => emptyCellsPerColor[label].size === 1 // Use .size for Set length
     );
 
@@ -142,14 +142,14 @@ function deduceQueenPlacement(gameStepHandler, stepsWidget) {
             rowsToUpdate.push(row);
           }
           newStep = { action: 'addConstraintToRows', rows: rowsToUpdate, excludeColors: containedIntervals };
-          updatedCells = updatedCells.concat(gameStepHandler.addConstraintToRows(rowsToUpdate, containedIntervals));
+          updatedCells = updatedCells.concat(gameLogicHandler.addConstraintToRows(rowsToUpdate, containedIntervals));
         } else { // cellGroupType === "Columns"
           const colsToUpdate = [];
           for (let col = start; col < end; col++) {
             colsToUpdate.push(col);
           }
           newStep = { action: 'addConstraintToColumns', cols: colsToUpdate, excludeColors: containedIntervals };
-          updatedCells = updatedCells.concat(gameStepHandler.addConstraintToColumns(colsToUpdate, containedIntervals));
+          updatedCells = updatedCells.concat(gameLogicHandler.addConstraintToColumns(colsToUpdate, containedIntervals));
         }
 
         // Log the deduction for rows or columns
@@ -176,15 +176,15 @@ function deduceQueenPlacement(gameStepHandler, stepsWidget) {
     return numDeductions;
   }
 
-  function deduceInvalidPlacements(gameStepHandler, stepsWidget) {
+  function deduceInvalidPlacements(gameLogicHandler, stepsWidget) {
     let numDeductions = 0;
-    const emptyCells = gameStepHandler.getEmptyCells();
+    const emptyCells = gameLogicHandler.getEmptyCells();
 
     for (const cell of emptyCells) {
       const [row, col] = cell;
       let isInvalidPlacement = false;
-      gameStepHandler.placeQueen(row, col);
-      const newEmptyCells = gameStepHandler.getEmptyCellsPerColor();
+      gameLogicHandler.placeQueen(row, col);
+      const newEmptyCells = gameLogicHandler.getEmptyCellsPerColor();
 
       for (let i = 0; i < puzzle.N; i++) {
         if (newEmptyCells[i].size === 0 && !puzzle.placedQueensColors.has(i)) { // Use .size for Set length
@@ -194,7 +194,7 @@ function deduceQueenPlacement(gameStepHandler, stepsWidget) {
         }
       }
 
-      gameStepHandler.removeQueenFromSolver(row, col);
+      gameLogicHandler.removeQueenFromSolver(row, col);
 
       if (isInvalidPlacement) {
         stepsWidget.push({
@@ -204,7 +204,7 @@ function deduceQueenPlacement(gameStepHandler, stepsWidget) {
           stepsWidget.push({ action: 'addConstraintToCell', row, col });
         }
 
-        gameStepHandler.addConstraintToCell(row, col);
+        gameLogicHandler.addConstraintToCell(row, col);
         numDeductions += 1;
       }
     }
@@ -220,16 +220,16 @@ function deduceQueenPlacement(gameStepHandler, stepsWidget) {
       //deduceInvalidPlacements,
     ];
 
-    const gameStepHandler = new GameStepHandler(puzzleGrid);
+    const gameLogicHandler = new GameLogicHandler(puzzleGrid);
     stepsWidget.push({
       message: "Starting deductive solver",
       action: 'message',
     });
 
-    while (gameStepHandler.isSolved() === false) {
+    while (gameLogicHandler.isSolved() === false) {
       let numDeductions = 0;
       for (const method of deductionMethods) {
-        numDeductions += method(gameStepHandler, stepsWidget);
+        numDeductions += method(gameLogicHandler, stepsWidget);
         if (numDeductions > 0) {
           break;
         }
@@ -244,7 +244,7 @@ function deduceQueenPlacement(gameStepHandler, stepsWidget) {
       }
     }
 
-    if (gameStepHandler.isSolved()) {
+    if (gameLogicHandler.isSolved()) {
       stepsWidget.push({
         message: "Found a solution!",
         action: 'highlightSolution'
