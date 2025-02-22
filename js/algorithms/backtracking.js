@@ -1,15 +1,24 @@
-import { isSafe } from "./logic.js";
-import { MARKING_NONE, MARKING_QUEEN } from "../widgets/puzzle_grid_state.js"
+import { GameStepHandler } from "../widgets/game_step_handler.js";
 
-function generateBacktrackingMovesByRow(puzzleGrid, placedQueens) {
-    const row = placedQueens.size;
-    if (row >= puzzleGrid.size()) {
+function _formatCandidateMovesStr(candidateMoves) {
+    let candidateMovesStr = ""
+    for (let i = 0; i < candidateMoves.length; i++) {
+        const [row, col] = candidateMoves[i];
+        candidateMovesStr = `${candidateMovesStr}[${row}, ${col}] `
+    }
+
+    return candidateMovesStr;
+}
+
+function _generateBacktrackingMovesByRow(gameStepHandler, index) {
+    const row = index;
+    if (row >= gameStepHandler.puzzleSize()) {
         return [];
     }
 
     const candidateMoves = [];
-    for (let col = 0; col < puzzleGrid.size(); col++) {
-        if (isSafe(puzzleGrid, row, col)) {
+    for (let col = 0; col < gameStepHandler.puzzleSize(); col++) {
+        if (gameStepHandler.isSafe(row, col)) {
             candidateMoves.push([ row, col ]);
         }
     }
@@ -17,79 +26,90 @@ function generateBacktrackingMovesByRow(puzzleGrid, placedQueens) {
     return candidateMoves;
 }
 
-function generateBacktrackingMovesByCol(puzzleGrid, placedQueens) {
-    const col = placedQueens.size;
-    if (col >= puzzleGrid.size()) {
+function _generateBacktrackingMovesByCol(gameStepHandler, index) {
+    const col = index;
+    if (col >= gameStepHandler.puzzleSize()) {
         return [];
     }
 
     const candidateMoves = [];
-    for (let row = 0; row < puzzleGrid.size(); row++) {
-        if (isSafe(puzzleGrid, row, col)) {
+    for (let row = 0; row < gameStepHandler.puzzleSize(); row++) {
+        if (gameStepHandler.isSafe(row, col)) {
             candidateMoves.push([ row, col ]);
         }
     }
 
     return candidateMoves;
+}
+
+function _generateBacktrackingMoves(gameStepHandler, method) {
+    const index = gameStepHandler.numPlacedQueens();
+    return {
+        row        : _generateBacktrackingMovesByRow,
+        column     : _generateBacktrackingMovesByCol
+    }[method](gameStepHandler, index);
 }
 
 export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod = 'row') {
-    const placedQueens = new Set();
-    const N = puzzleGrid.size();
+    const gameStepHandler = new GameStepHandler(puzzleGrid);
+    stepsWidget.push({
+        action: 'message',
+        message: "Starting backtracking solver"
+    });
 
-    const generateMoves = moveRankMethod === 'row' ?
-        generateBacktrackingMovesByRow : generateBacktrackingMovesByCol;
+    function solveBacktrackingRecursive() {
+        const candidateMoves = _generateBacktrackingMoves(gameStepHandler, moveRankMethod);
+        const candidateMovesStr = _formatCandidateMovesStr(candidateMoves);
+        const level = gameStepHandler.numPlacedQueens();
 
-    function solveBacktrackingRecursive(state, row) {
-        if (placedQueens.size === N) {
-            console.log("Found a solution!");
-            return [...placedQueens];
+        if (candidateMoves.length > 0) {
+            stepsWidget.push({
+                message: `Candidate moves at backtracking level ${level}: ${candidateMovesStr}`,
+                action: 'highlightCells',
+                args: { cells: candidateMoves }
+            });
+        }
+        else {
+            stepsWidget.push({
+                message: `No candidate moves at backtracking level ${level}`,
+                action: 'message'
+            })
         }
 
-        console.log(`Backtracking level: ${placedQueens.size}`);
-        const candidateMoves = generateMoves(puzzleGrid, placedQueens);
-        let candidateMovesStr = ""
         for (let i = 0; i < candidateMoves.length; i++) {
             const [row, col] = candidateMoves[i];
-            candidateMovesStr = `${candidateMovesStr}[${row}, ${col}] `
-        }
-        console.log(`Candidate moves: ${candidateMovesStr}`);
+            stepsWidget.push({
+                message: `Placing queen at: ${row}, ${col}`,
+                action: "placeQueen",
+                args: { row, col }
+            });
+            gameStepHandler.placeQueen(row, col);
 
-        for (let i = 0; i < candidateMoves.length; i++) {
-            const [row, col] = candidateMoves[i];
-
-            console.log(`Placing queen at: ${row}, ${col}`);
-            puzzleGrid.setMarkingAt(row, col, MARKING_QUEEN);
-            if (stepsWidget) {
-                stepsWidget.push({ action: "Place Queen", row, col });
+            if (gameStepHandler.isSolved()) {
+                stepsWidget.push({
+                    message: "Found a solution!",
+                    action: 'highlightSolution'
+                });
+                return [...gameStepHandler.getPlacedQueens()];
             }
-            placedQueens.add(`${row},${col}`);
 
-            const recursiveSolution = solveBacktrackingRecursive(state, row + 1);
+            const recursiveSolution = solveBacktrackingRecursive();
             if (recursiveSolution) {
                 return recursiveSolution;
             }
 
-            console.log(`Removing queen from: ${row}, ${col}`);
-            puzzleGrid.setMarkingAt(row, col, MARKING_NONE);
-            if (stepsWidget) {
-                stepsWidget.push({ action: "Backtrack", row, col });
-            }
-            placedQueens.delete(`${row},${col}`);
+            stepsWidget.push({
+                message: `Removing queen from: ${row}, ${col}`,
+                action: "removeQueen",
+                args: { row, col }
+            });
+            gameStepHandler.removeQueen(row, col);
         }
 
         return null;
     }
 
-    if (stepsWidget) {
-        stepsWidget.push({ action: "Begin Solver" });
-    }
-    const state = Array(N).fill(null).map(() => Array(N).fill(0));
-    const solution = solveBacktrackingRecursive(state, 0);
-    if (stepsWidget) {
-        stepsWidget.push({ action: "Done" });
-    }
-
+    const solution = solveBacktrackingRecursive();
     if (solution) {
         return { solution, solved: true };
     } else {
