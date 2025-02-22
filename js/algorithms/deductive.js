@@ -1,9 +1,11 @@
-function deduceQueenPlacement(puzzle, stepsWidget) {
-    let numDeductions = 0;
-    const emptyCellsPerColor = puzzle.getEmptyCellsPerColor();
+import { GameStepHandler } from "../widgets/game_step_handler.js";
 
-    const matchingColors = Array.from(Array(puzzle.N).keys()).filter(
-      (label) => emptyCellsPerColor[label].size === 1 // Use .size for Set length
+function deduceQueenPlacement(gameStepHandler, stepsWidget) {
+  let numDeductions = 0;
+  const emptyCellsPerColor = gameStepHandler.getEmptyCellsPerColor();
+
+  const matchingColors = Array.from(Array(gameStepHandler.puzzleSize()).keys()).filter(
+    (label) => emptyCellsPerColor[label].size === 1 // Use .size for Set length
     );
 
     if (matchingColors.length > 0) {
@@ -26,9 +28,9 @@ function deduceQueenPlacement(puzzle, stepsWidget) {
 
     return numDeductions;
 
-}
+  }
 
-function deduceSingleRowCol(puzzle, stepsWidget) {
+  function deduceSingleRowCol(puzzle, stepsWidget) {
     let numDeductions = 0;
     const emptyCellsPerColor = puzzle.getEmptyCellsPerColor();
 
@@ -76,113 +78,113 @@ function deduceSingleRowCol(puzzle, stepsWidget) {
     }
 
     return numDeductions;
-}
-
-function deduceUsingColorExclusivity(puzzle, stepsWidget) {
-  let numDeductions = 0;
-  const N = puzzle.N;
-
-  // Map each color to the set of rows and columns where it has empty cells
-  const emptyCellsPerColor = puzzle.getEmptyCellsPerColor();
-  const colorToEmptyRows = {};
-  const colorToEmptyColumns = {};
-
-  for (let label = 0; label < N; label++) {
-    const cells = emptyCellsPerColor[label];
-    colorToEmptyRows[label] = new Set();
-    colorToEmptyColumns[label] = new Set();
-    for (const [row, _] of cells) {
-      colorToEmptyRows[label].add(row);
-    }
-    for (const [_, col] of cells) {
-      colorToEmptyColumns[label].add(col);
-    }
   }
 
-  // Convert sets to intervals and filter out empty sets
-  const colorRowIntervals = {};
-  const colorColumnIntervals = {};
+  function deduceUsingColorExclusivity(puzzle, stepsWidget) {
+    let numDeductions = 0;
+    const N = puzzle.N;
 
-  for (let color = 0; color < N; color++) {
-    if (colorToEmptyRows[color].size > 0) {
+    // Map each color to the set of rows and columns where it has empty cells
+    const emptyCellsPerColor = puzzle.getEmptyCellsPerColor();
+    const colorToEmptyRows = {};
+    const colorToEmptyColumns = {};
+
+    for (let label = 0; label < N; label++) {
+      const cells = emptyCellsPerColor[label];
+      colorToEmptyRows[label] = new Set();
+      colorToEmptyColumns[label] = new Set();
+      for (const [row, _] of cells) {
+        colorToEmptyRows[label].add(row);
+      }
+      for (const [_, col] of cells) {
+        colorToEmptyColumns[label].add(col);
+      }
+    }
+
+    // Convert sets to intervals and filter out empty sets
+    const colorRowIntervals = {};
+    const colorColumnIntervals = {};
+
+    for (let color = 0; color < N; color++) {
+      if (colorToEmptyRows[color].size > 0) {
         const rows = Array.from(colorToEmptyRows[color]).sort((a,b) => a-b);
         colorRowIntervals[color] = [rows[0], rows[rows.length-1]];
-    }
+      }
       if (colorToEmptyColumns[color].size > 0) {
         const cols = Array.from(colorToEmptyColumns[color]).sort((a,b) => a-b);
         colorColumnIntervals[color] = [cols[0], cols[cols.length-1]];
+      }
     }
-  }
 
-  function processColorGroups(colorIntervals, cellGroupType, groupSize) {
-    for (let start = 0; start <= N - groupSize; start++) {
-      const end = start + groupSize;
-      const containedIntervals = [];
+    function processColorGroups(colorIntervals, cellGroupType, groupSize) {
+      for (let start = 0; start <= N - groupSize; start++) {
+        const end = start + groupSize;
+        const containedIntervals = [];
 
-      for (const color in colorIntervals) {
-        const interval = colorIntervals[color];
-        if (interval[0] >= start && interval[1] <= end - 1) {
-          containedIntervals.push(parseInt(color)); // Parse color to int
+        for (const color in colorIntervals) {
+          const interval = colorIntervals[color];
+          if (interval[0] >= start && interval[1] <= end - 1) {
+            containedIntervals.push(parseInt(color)); // Parse color to int
+          }
         }
-      }
 
-      if (containedIntervals.length !== groupSize) {
-        continue;
-      }
+        if (containedIntervals.length !== groupSize) {
+          continue;
+        }
 
-      // Successful deduction
-      let updatedCells = [];
-      let newStep = null;
+        // Successful deduction
+        let updatedCells = [];
+        let newStep = null;
 
-      if (cellGroupType === "Rows") {
+        if (cellGroupType === "Rows") {
           const rowsToUpdate = [];
           for (let row = start; row < end; row++) {
-              rowsToUpdate.push(row);
+            rowsToUpdate.push(row);
           }
           newStep = { action: 'addConstraintToRows', rows: rowsToUpdate, excludeColors: containedIntervals };
-          updatedCells = updatedCells.concat(puzzle.addConstraintToRows(rowsToUpdate, containedIntervals));
-      } else { // cellGroupType === "Columns"
+          updatedCells = updatedCells.concat(gameStepHandler.addConstraintToRows(rowsToUpdate, containedIntervals));
+        } else { // cellGroupType === "Columns"
           const colsToUpdate = [];
           for (let col = start; col < end; col++) {
-              colsToUpdate.push(col);
+            colsToUpdate.push(col);
           }
           newStep = { action: 'addConstraintToColumns', cols: colsToUpdate, excludeColors: containedIntervals };
-          updatedCells = updatedCells.concat(puzzle.addConstraintToColumns(colsToUpdate, containedIntervals));
-      }
-    
-      // Log the deduction for rows or columns
-      const numUpdatedCells = updatedCells.size;
-      if (numUpdatedCells > 0) {
-        numDeductions++;
-
-        if (stepsWidget) {
-          stepsWidget.push(newStep);
+          updatedCells = updatedCells.concat(gameStepHandler.addConstraintToColumns(colsToUpdate, containedIntervals));
         }
-        
-        console.debug(`${cellGroupType} ${start}-${end - 1} must place in a queen in colors ${containedIntervals}`);
-        console.debug(`   Gained information about ${numUpdatedCells} cells`);
+
+        // Log the deduction for rows or columns
+        const numUpdatedCells = updatedCells.size;
+        if (numUpdatedCells > 0) {
+          numDeductions++;
+
+          if (stepsWidget) {
+            stepsWidget.push(newStep);
+          }
+
+          console.debug(`${cellGroupType} ${start}-${end - 1} must place in a queen in colors ${containedIntervals}`);
+          console.debug(`   Gained information about ${numUpdatedCells} cells`);
+        }
       }
     }
+
+    // Iterate over group sizes from 2 to N-1
+    for (let groupSize = 2; groupSize < N; groupSize++) {
+      processColorGroups(colorRowIntervals, "Rows", groupSize);
+      processColorGroups(colorColumnIntervals, "Cols", groupSize);
+    }
+
+    return numDeductions;
   }
 
-  // Iterate over group sizes from 2 to N-1
-  for (let groupSize = 2; groupSize < N; groupSize++) {
-    processColorGroups(colorRowIntervals, "Rows", groupSize);
-    processColorGroups(colorColumnIntervals, "Cols", groupSize);
-  }
-
-  return numDeductions;
-}
-
-function deduceInvalidPlacements(puzzle, stepsWidget) {
+  function deduceInvalidPlacements(gameStepHandler, stepsWidget) {
     let numDeductions = 0;
-    const emptyCells = puzzle.getEmptyCells();
+    const emptyCells = gameStepHandler.getEmptyCells();
 
     for (const cell of emptyCells) {
       const [row, col] = cell;
       let isInvalidPlacement = false;
-      puzzle.placeQueenFromSolver(row, col);
-      const newEmptyCells = puzzle.getEmptyCellsPerColor();
+      gameStepHandler.placeQueen(row, col);
+      const newEmptyCells = gameStepHandler.getEmptyCellsPerColor();
 
       for (let i = 0; i < puzzle.N; i++) {
         if (newEmptyCells[i].size === 0 && !puzzle.placedQueensColors.has(i)) { // Use .size for Set length
@@ -192,56 +194,65 @@ function deduceInvalidPlacements(puzzle, stepsWidget) {
         }
       }
 
-      puzzle.removeQueenFromSolver(row, col);
+      gameStepHandler.removeQueenFromSolver(row, col);
 
       if (isInvalidPlacement) {
+        stepsWidget.push({
+
+        })
         if (stepsWidget) {
           stepsWidget.push({ action: 'addConstraintToCell', row, col });
         }
 
-        puzzle.addConstraintToCell(row, col);
+        gameStepHandler.addConstraintToCell(row, col);
         numDeductions += 1;
       }
     }
 
     return numDeductions;
-}
-
-export function solvePuzzleDeductive(puzzle, stepsWidget) {
-  const deductionMethods = [
-    deduceQueenPlacement,
-    deduceSingleRowCol,
-    deduceUsingColorExclusivity,
-    deduceInvalidPlacements,
-  ];
-
-  if (stepsWidget) {
-    stepsWidget.push({ action: "Begin Solver" });
   }
 
-    while (puzzle.isSolved() === false) {
+  export function solvePuzzleDeductive(puzzleGrid, stepsWidget) {
+    const deductionMethods = [
+      deduceQueenPlacement,
+      //deduceSingleRowCol,
+      //deduceUsingColorExclusivity,
+      //deduceInvalidPlacements,
+    ];
+
+    const gameStepHandler = new GameStepHandler(puzzleGrid);
+    stepsWidget.push({
+      message: "Starting deductive solver",
+      action: 'message',
+    });
+
+    while (gameStepHandler.isSolved() === false) {
       let numDeductions = 0;
       for (const method of deductionMethods) {
-        numDeductions += method(puzzle, stepsWidget);
+        numDeductions += method(gameStepHandler, stepsWidget);
         if (numDeductions > 0) {
           break;
         }
       }
 
       if (numDeductions === 0) {
-        console.warn("Ran out of deductions");
+        stepsWidget.push({
+          message: "Cannot make any further deductions",
+          action: 'message'
+        });
         break;
       }
     }
 
-    if (stepsWidget) {
-      stepsWidget.push({ action: "Done" });
-    }
+    if (gameStepHandler.isSolved()) {
+      stepsWidget.push({
+        message: "Found a solution!",
+        action: 'highlightSolution'
+      });
 
-    if (puzzle.isSolved()) {
-        let solution = puzzle.placedQueens;
-        return { solution, solved: true };
+      let solution = puzzleGrid.getPlacedQueens();
+      return { solution, solved: true };
     } else {
-        return { solution: null, solved: false };
+      return { solution: null, solved: false };
     }
-}
+  }

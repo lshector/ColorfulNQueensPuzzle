@@ -42,8 +42,9 @@ export function isSafe(puzzleGrid, row, col) {
     return true;
 }
 
-export function getAffectedCellsFromPlacingQueenAt(N, labels, row, col) {
+export function getAffectedCellsFromPlacingQueenAt(puzzleGrid, row, col) {
     const affectedCells = new Set();
+    const N = puzzleGrid.size();
 
     // Check column conflicts
     for (let j = 0; j < N; j++) {
@@ -63,17 +64,17 @@ export function getAffectedCellsFromPlacingQueenAt(N, labels, row, col) {
     for (const [dr, dc] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
         let nr = row + dr;
         let nc = col + dc;
-        
+
         if (nr >= 0 && nr < N && nc >= 0 && nc < N) {
             affectedCells.add(`${nr},${nc}`)
         }
     }
 
     // Check color conflicts
-    const color = labels[row][col];
+    const color = puzzleGrid.getColorGroupAt(row, col);
     for (let i = 0; i < N; i++) {
         for (let j = 0; j < N; j++) {
-            if ((i !== row || j !== col) && labels[i][j] === color) {
+            if ((i !== row || j !== col) && puzzleGrid.getColorGroupAt(i, j) === color) {
                 affectedCells.add(`${i},${j}`);
             }
         }

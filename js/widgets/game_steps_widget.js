@@ -26,6 +26,10 @@ export class GameStepsWidget {
   push(data) {
     this.steps.push(data);
     this.updateSliderMax(); // Update slider max when new steps are added
+
+    if (data.message) {
+      console.log(data.message);
+    }
   }
 
   clearSteps() {

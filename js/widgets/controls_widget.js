@@ -181,8 +181,9 @@ class SolveMenuControls extends MenuControls {
 
     runAlgorithm(algorithm) {
         this.selectedAlgorithm = algorithm;
-        this.puzzleGrid.clearMarkings();
         this.stepsWidget.clearSteps();
+        this.puzzleGrid.clearMarkings();
+        this.puzzleGrid.render();
 
         if (algorithm === 'backtracking') {
             const result = solvePuzzleBacktracking(this.puzzleGrid, this.stepsWidget);
