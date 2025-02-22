@@ -5,30 +5,28 @@ function deduceQueenPlacement(gameLogicHandler, stepsWidget) {
   const emptyCellsPerColor = gameLogicHandler.getEmptyCellsPerColor();
 
   const matchingColors = Array.from(Array(gameLogicHandler.puzzleSize()).keys()).filter(
-    (label) => emptyCellsPerColor[label].size === 1 // Use .size for Set length
-    );
+    (colorGroup) => emptyCellsPerColor[colorGroup].length === 1
+  );
 
-    if (matchingColors.length > 0) {
-      for (const label of matchingColors) {
-        const [row, col] = emptyCellsPerColor[label].values().next().value; // Get the single cell from Set
-        const updatedCells = puzzle.placeQueenFromSolver(row, col);
-        const numUpdatedCells = updatedCells.size;
+  if (matchingColors.length > 0) {
+    for (const colorGroup of matchingColors) {
+      const [row, col] = emptyCellsPerColor[colorGroup].values().next().value;
+      const updatedCells = gameLogicHandler.placeQueen(row, col);
+      const numUpdatedCells = updatedCells.size;
 
-        if (numUpdatedCells > 0) {
-          numDeductions += 1;
-          if (stepsWidget) {
-            stepsWidget.push({ action: "Place Queen", row, col });
-          }
-          console.debug(`Deduced rule 'queen_placement' for color ${label}`);
-          console.debug(`   Gained information about ${numUpdatedCells} cells`);
-          //DeductiveSolver.displayAlgorithmStep(moveHandler, renderer);
-        }
+      if (numUpdatedCells > 0) {
+        stepsWidget.push({
+          message: `There is a single empty cell for color group ${colorGroup} (${row}, ${col}), so a queen must be placed there. Gained information about ${numUpdatedCells} cells`,
+          action: "placeQueen",
+          args: { row, col }
+        });
+        numDeductions += 1;
       }
     }
-
-    return numDeductions;
-
   }
+
+  return numDeductions;
+}
 
   function deduceSingleRowCol(puzzle, stepsWidget) {
     let numDeductions = 0;

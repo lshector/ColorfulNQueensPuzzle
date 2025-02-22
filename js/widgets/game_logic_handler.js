@@ -70,4 +70,38 @@ export class GameLogicHandler {
     isSafe(row, col) {
         return isSafe(this._puzzleGrid, row, col);
     }
+
+    getEmptyCells() {
+        const N = this.puzzleSize();
+        const emptyCells = [];
+
+        for (let row = 0; row < N; row++) {
+          for (let col = 0; col < N; col++) {
+            if (this._puzzleGrid.getMarkingAt(row, col) === MARKING_NONE) {
+              emptyCells.push([row, col]);
+            }
+          }
+        }
+
+        return emptyCells;
+    }
+
+    getEmptyCellsPerColor() {
+        const emptyCells = this.getEmptyCells();
+        const emptyCellsPerColor = {};
+
+        // Initialize N empty lists
+        for (let i = 0; i < this.puzzleSize(); i++) {
+            emptyCellsPerColor[i] = [];
+        }
+
+        // Organize empty cells by color
+        for (const cell of emptyCells) {
+            const [row, col] = cell;
+            const colorGroup = this._puzzleGrid.getColorGroupAt(row, col);
+            emptyCellsPerColor[colorGroup].push(cell);
+        }
+
+        return emptyCellsPerColor;
+      }
 }
