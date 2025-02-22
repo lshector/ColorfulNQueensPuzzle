@@ -94,4 +94,16 @@ export class PuzzleGrid {
   render() {
     this._renderer.render();
   }
+
+  refresh() {
+    this._renderer.refresh();
+  }
+
+  setHighlightAt(row, col, enable) {
+    this._renderer.update({ row, col, darken: !enable, colorGroup: this.getColorGroupAt(row, col) });
+  }
+
+  setInfoLabelAt(row, col, newInfoLabel) {
+    this._renderer.update({ row, col, infoLabel: newInfoLabel });
+  }
 };

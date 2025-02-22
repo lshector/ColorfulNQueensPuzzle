@@ -154,10 +154,7 @@ class GenerateMenuControls extends MenuControls {
 
             console.log(result)
 
-            console.log(result)
-
             this.stepsWidget.puzzleGrid = this.puzzleGrid;
-            this.stepsWidget.updateSliderMax();
         } catch (error) {
             console.error("Puzzle generation failed:", error);
             alert("Puzzle generation failed. See console for details.");
@@ -182,8 +179,6 @@ class SolveMenuControls extends MenuControls {
     runAlgorithm(algorithm) {
         this.selectedAlgorithm = algorithm;
         this.stepsWidget.clearSteps();
-        this.puzzleGrid.clearMarkings();
-        this.puzzleGrid.render();
 
         if (algorithm === 'backtracking') {
             const result = solvePuzzleBacktracking(this.puzzleGrid, this.stepsWidget);
@@ -193,8 +188,6 @@ class SolveMenuControls extends MenuControls {
             } else {
                 console.log("No solution found.");
             }
-
-            this.stepsWidget.updateSliderMax();
         } else if (algorithm === 'deductive') {
             const result = solvePuzzleDeductive(this.puzzleGrid, this.stepsWidget);
 
@@ -203,8 +196,6 @@ class SolveMenuControls extends MenuControls {
             } else {
                 console.log("No solution found.");
             }
-
-            this.stepsWidget.updateSliderMax();
         }
 
         this.puzzleGrid.render();

@@ -25,21 +25,36 @@ export class GameLogicHandler {
         return this._placedQueens.size === this._puzzleGrid.size();
     }
 
+    clearMarkings() {
+        this._puzzleGrid.clearMarkings();
+        this._placedQueens = new Set();
+        this._constraintCount = Array(this.puzzleSize()).fill(null).map(() => Array(this.puzzleSize()).fill(0));
+        for (let r = 0; r < this.puzzleSize(); ++r) {
+            for (let c = 0; c < this.puzzleSize(); ++c) {
+                this._constraintCount[r][c] = 0;
+                this._puzzleGrid.setInfoLabelAt(r, c, 0);
+            }
+        }
+    }
+
     placeQueen(row, col) {
+        let updatedCells = [];
+
         this._puzzleGrid.setMarkingAt(row, col, MARKING_QUEEN);
         this._placedQueens.add(`${row},${col}`);
-
-        let updatedCells = new Set();
-        updatedCells.add(`${row},${col}`);
+        this._constraintCount[row][col] += 1;
+        this._puzzleGrid.setInfoLabelAt(row, col, this._constraintCount[row][col]);
+        updatedCells.push([row, col]);
 
         const affectedCells = getAffectedCellsFromPlacingQueenAt(this._puzzleGrid, row, col);
         for (const affectedCell of affectedCells) {
             const [r, c] = affectedCell.split(",").map(Number);
             this._constraintCount[r][c] += 1;
+            this._puzzleGrid.setInfoLabelAt(r, c, this._constraintCount[r][c]);
 
             if (this._constraintCount[r][c] === 1) {
                 this._puzzleGrid.setMarkingAt(r, c, MARKING_X);
-                updatedCells.add(`${r},${c}`);
+                updatedCells.push([r, c]);
             }
         }
 
@@ -47,20 +62,23 @@ export class GameLogicHandler {
     }
 
     removeQueen(row, col) {
+        let updatedCells = [];
+
         this._puzzleGrid.setMarkingAt(row, col, MARKING_NONE);
         this._placedQueens.delete(`${row},${col}`);
-
-        let updatedCells = new Set();
-        updatedCells.add(`${row},${col}`);
+        this._constraintCount[row][col] -= 1;
+        this._puzzleGrid.setInfoLabelAt(row, col, this._constraintCount[row][col]);
+        updatedCells.push([row, col]);
 
         const affectedCells = getAffectedCellsFromPlacingQueenAt(this._puzzleGrid, row, col);
         for (const affectedCell of affectedCells) {
             const [r, c] = affectedCell.split(",").map(Number);
             this._constraintCount[r][c] -= 1;
+            this._puzzleGrid.setInfoLabelAt(r, c, this._constraintCount[r][c]);
 
             if (this._constraintCount[r][c] === 0) {
                 this._puzzleGrid.setMarkingAt(r, c, MARKING_NONE);
-                updatedCells.add(`${r},${c}`);
+                updatedCells.push([r, c]);
             }
         }
 
@@ -104,4 +122,25 @@ export class GameLogicHandler {
 
         return emptyCellsPerColor;
       }
+
+    highlightAllCells() {
+        for (let row = 0; row < this.puzzleSize(); ++row) {
+            for (let col = 0; col < this.puzzleSize(); ++col) {
+                this._puzzleGrid.setHighlightAt(row, col, true);
+            }
+        }
+    }
+
+    highlightCells(cells) {
+        for (let row = 0; row < this.puzzleSize(); ++row) {
+            for (let col = 0; col < this.puzzleSize(); ++col) {
+                this._puzzleGrid.setHighlightAt(row, col, false);
+            }
+        }
+
+        for (const cell of cells) {
+            const [row, col] = cell;
+            this._puzzleGrid.setHighlightAt(row, col, true);
+        }
+    }
 }

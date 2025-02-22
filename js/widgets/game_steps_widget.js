@@ -1,3 +1,14 @@
+import { GameLogicHandler } from "./game_logic_handler.js";
+
+export const GameSteps = Object.freeze({
+  MESSAGE            : Symbol("MESSAGE"),
+  CLEAR_MARKINGS     : Symbol("CLEAR_MARKINGS"),
+  PLACE_QUEEN        : Symbol("PLACE_QUEEN"),
+  REMOVE_QUEEN       : Symbol("REMOVE_QUEEN"),
+  HIGHLIGHT_CELLS    : Symbol("HIGHLIGHT_CELLS"),
+  HIGHLIGHT_SOLUTION : Symbol("HIGHLIGHT_SOLUTION")
+});
+
 export class GameStepsWidget {
   constructor(containerId, puzzleGrid) {
     this.containerId = containerId;
@@ -12,6 +23,8 @@ export class GameStepsWidget {
     this.stepsText = null;
     this.playing = false;
     this.animationFrameId = null;
+    this.replayEnabled = true;
+    this.gameLogicHandler = new GameLogicHandler(this.puzzleGrid);
 
     if (!this.container) {
       console.error("Container not found:", containerId);
@@ -23,18 +36,24 @@ export class GameStepsWidget {
       .catch(error => console.error("Error during initialization:", error));
   }
 
-  push(data) {
-    this.steps.push(data);
-    this.updateSliderMax(); // Update slider max when new steps are added
-
-    if (data.message) {
-      console.log(data.message);
-    }
+  toggleEnableReplay(value) {
+    this.replayEnabled = value;
   }
 
   clearSteps() {
     this.steps = [];
-    this.updateSliderMax(); // Update slider max when steps are cleared
+    this.slider.max = 0;
+    this.updateSliderValue(this.slider.max);
+  }
+
+  push(data) {
+    this.steps.push(data);
+    this.slider.max = this.steps.length - 1;
+    this.updateSliderValue(this.slider.max);
+
+    if (data.message) {
+      console.log(data.message);
+    }
   }
 
   async loadHTML() {
@@ -68,15 +87,15 @@ export class GameStepsWidget {
   }
 
   initialize() {
-    this.updateSliderMax();
     this.initializeSlider();
     this.initializePlayButton();
+    this.clearSteps();
   }
 
   updateSliderValue(newCount) {
-    let prevCount = this.slider.value;
-    if (prevCount === newCount) {
-        return;
+    let prevCount = Number(this.sliderValue.value);
+    if (prevCount == newCount) {
+      return;
     }
 
     // update slider HTML elements
@@ -84,22 +103,63 @@ export class GameStepsWidget {
     this.sliderValue.value = newCount;
 
     // TODO: optimize traveling backwards
-//    if (newCount < prevCount) {
-//        prevCount = 0;
-//    }
+    if (newCount < prevCount) {
+      prevCount = -1;
+    }
 
-    // replay the game steps
-//    for (let currCount = prevCount; currCount <= newCount; ++currCount) {
+    if (this.replayEnabled) {
+      // replay the game steps
+      console.log(`Replaying steps ${prevCount+1} to ${newCount}`);
+      for (let currCount = prevCount+1; currCount <= newCount; ++currCount) {
+        console.log(`Replaying step ${currCount}`);
+        this.replayStep(currCount);
+      }
 
-//    }
-
-//    this.puzzleGrid.render();
+      this.puzzleGrid.render();
+    }
   }
 
-  updateSliderMax() {
-    const max = this.steps.length > 0 ? this.steps.length - 1 : 0;
-    this.slider.max = max;
-    this.updateSliderValue(Math.min(this.slider.value, max));
+  replayStep(stepNumber) {
+    if (stepNumber === 0) {
+      this.gameLogicHandler = new GameLogicHandler(this.puzzleGrid);
+    }
+
+    if (this.steps.length === 0) {
+      return;
+    }
+
+    const step = this.steps[stepNumber];
+    this.stepsText.value = `[Step ${stepNumber}]\n${step.message}`;
+    console.log(this.stepsText.value);
+
+    let updatedCells = null;
+    switch (step.action) {
+      case GameSteps.MESSAGE:
+        break;
+      case GameSteps.CLEAR_MARKINGS:
+        this.gameLogicHandler.clearMarkings();
+        break;
+      case GameSteps.PLACE_QUEEN:
+        updatedCells = this.gameLogicHandler.placeQueen(step.args.row, step.args.col);
+        break;
+      case GameSteps.REMOVE_QUEEN:
+        updatedCells = this.gameLogicHandler.removeQueen(step.args.row, step.args.col);
+        break;
+      case GameSteps.HIGHLIGHT_CELLS:
+        updatedCells = step.args.cells;
+        break;
+      case GameSteps.HIGHLIGHT_SOLUTION:
+        break;
+      default:
+        console.error(`Unknown action`);
+    }
+
+    if (updatedCells === null) {
+      this.gameLogicHandler.highlightAllCells();
+    }
+    else {
+      this.gameLogicHandler.highlightCells(updatedCells);
+    }
   }
 
   initializeSlider() {
@@ -123,24 +183,29 @@ export class GameStepsWidget {
   initializePlayButton(animationSpeed = 100) {
     this.playButton.addEventListener('click', () => {
       this.playing = !this.playing;
-      this.playButton.textContent = this.playing ? "⏸" : "▶️";
+      this.playButton.textContent = this.playing ? "⏸" : "▶";
 
       if (this.playing) {
         if (this.steps.length === 0) return;
 
         let currentStep = parseInt(this.slider.value, 10);
-        if (currentStep === this.steps.length - 1) currentStep = 0;
+        if (currentStep === this.steps.length - 1) {
+          currentStep = 0;
+        }
 
         let startTime;
         const animate = (timestamp) => {
-          if (!startTime) startTime = timestamp;
+          if (!startTime) {
+            startTime = timestamp;
+          }
+
           const elapsedTime = timestamp - startTime;
 
           if (elapsedTime >= animationSpeed) {
             startTime = timestamp;
             currentStep++;
 
-            if (currentStep > this.steps.length - 1) {
+            if (currentStep === this.steps.length) {
               this.interruptPlay();
               return;
             }
@@ -158,7 +223,6 @@ export class GameStepsWidget {
     });
   }
 
-
   interruptPlay() {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
@@ -166,110 +230,6 @@ export class GameStepsWidget {
     }
     this.playing = false;
     this.playButton.textContent = "▶️";
+    this.puzzleGrid.render();
   }
 }
-
-
-    // updatePuzzleState(stepIndex) {
-    //     if (this.steps.length === 0) return;
-
-    //     const N = this.puzzleGrid.N;
-    //     const stepsText = this.stepsText;
-    //     stepsText.value = ""; // Clear steps text
-
-    //     const appendLine = (newLine) => {
-    //         stepsText.value += (stepsText.value ? '\n' : '') + newLine;
-    //         stepsText.scrollTop = stepsText.scrollHeight;
-    //     };
-
-    //     const handleBeginSolver = () => {
-    //         this.puzzleGrid.clearMarkings();
-    //         return new Set();
-    //     }
-
-    //     const handleBeginGeneration = () => {
-    //         this.puzzleGrid.clearMarkings();
-    //         this.puzzleGrid.clearColorGroups();
-    //         return new Set();
-    //     }
-
-    //     const handleDone = () => {
-    //         return new Set();
-    //     }
-
-    //     for (let i = 0; i <= stepIndex; i++) {
-    //         const step = this.steps[i];
-    //         this.puzzleGrid.highlightedCells = new Set();
-
-    //         const actionHandlers = {
-    //             "Begin Solver": () => this.puzzleGrid.clearMarkings(),
-    //             "Begin Generation": () => {
-    //                 this.puzzleGrid.clearMarkings();
-    //                 this.puzzleGrid.clearColorGroups();
-    //             },
-    //             "Place Queen": () => {
-    //                 const affectedCells = this.puzleGrid.placeQueen(step.row, step.col);
-    //                 for (cell in affectedCells) {
-    //                     this.puzzleGrid.setMarking
-    //                 }
-    //             }
-    //             "Backtrack": () => this.puzzleGrid.removeQueen(step.row, step.col, applyLogicCheck=false),
-
-    //             "addConstraintToRows": () => runner.addConstraintToRows(step.rows, step.excludeColors),
-    //             "addConstraintToColumns": () => runner.addConstraintToColumns(step.cols, step.excludeColors),
-    //             "addConstraintToCell": () => runner.addConstraintToCell(step.row, step.col),
-    //             "removeConstraintFromRows": () => runner.removeConstraintFromRows(step.rows),
-    //             "removeConstraintFromColumns": () => runner.removeConstraintFromColumns(step.cols),
-    //             "removeConstraintFromCell": () => runner.removeConstraintFromCell(step.row, step.col),
-    //             "paintCell": () => runner.setLabel(step.row, step.col, step.label),
-    //             "unpaintCell": () => runner.setLabel(step.row, step.col, -1),
-    //             "clearColorGroups": () => runner.clearColorGroups(),
-    //             "Done": () => runner.done()
-    //         };
-
-    //         if (step.action in actionHandlers) {
-    //             const updatedCells = actionHandlers[step.action]();
-    //             this.puzzleGrid.highlightedCells = updatedCells;
-    //             appendLine(this.getActionDescription(step));
-    //         }
-    //     }
-
-    //     this.puzzleGrid.render();
-    // }
-
-    // // Helper function to generate action descriptions
-    // getActionDescription(step) {
-    //     switch (step.action) {
-    //         case "Begin Solver":
-    //         return `Starting solver algorithm`;
-    //         case "Begin Generation":
-    //         return `Starting generation algorithm`;
-    //         case "Place Queen":
-    //         return `Placed queen at (${step.row}, ${step.col})`;
-    //         case "Backtrack":
-    //         return `Backtracking by removing queen from (${step.row}, ${step.col})`;
-    //         case "addConstraintToRows":
-    //         return `Marking all cells in row(s) ${step.rows} excluding colors: ${step.excludeColors}`;
-    //         case "addConstraintToColumns":
-    //         return `Marking all cells in col(s) ${step.cols} excluding colors: ${step.excludeColors}`;
-    //         case "addConstraintToCell":
-    //         return `Marking cell (${step.row}, ${step.col})`;
-    //         case "removeConstraintFromRows": // New descriptions
-    //         return `Removing constraints from row(s) ${step.rows}`;
-    //         case "removeConstraintFromColumns":
-    //         return `Removing constraints from column(s) ${step.cols}`;
-    //         case "removeConstraintFromCell":
-    //         return `Removing constraint from cell (${step.row}, ${step.col})`;
-    //         case "paintCell":
-    //         return `Painting cell (${step.row}, ${step.col}) with color ${step.label}`;
-    //         case "unpaintCell":
-    //         return `Removing label from cell (${step.row}, ${step.col})`;
-    //         case "clearColorGroups":
-    //         return "Clearing all labels";
-    //         case "Done":
-    //         return `Completed algorithm`;
-    //         default:
-    //         return `Unknown action ${step.action}`;
-    //     }
-    // }
-// }

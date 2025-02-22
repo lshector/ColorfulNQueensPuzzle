@@ -1,4 +1,5 @@
 import { GameLogicHandler } from "../widgets/game_logic_handler.js";
+import { GameSteps, GameStepsWidget } from "../widgets/game_steps_widget.js";
 
 function _formatCandidateMovesStr(candidateMoves) {
     let candidateMovesStr = ""
@@ -13,33 +14,37 @@ function _formatCandidateMovesStr(candidateMoves) {
 function _generateBacktrackingMovesByRow(gameLogicHandler, index) {
     const row = index;
     if (row >= gameLogicHandler.puzzleSize()) {
-        return [];
+        return [], [];
     }
 
     const candidateMoves = [];
+    const selectionPool = [];
     for (let col = 0; col < gameLogicHandler.puzzleSize(); col++) {
+        selectionPool.push([row, col]);
         if (gameLogicHandler.isSafe(row, col)) {
             candidateMoves.push([ row, col ]);
         }
     }
 
-    return candidateMoves;
+    return [candidateMoves, selectionPool];
 }
 
 function _generateBacktrackingMovesByCol(gameLogicHandler, index) {
     const col = index;
     if (col >= gameLogicHandler.puzzleSize()) {
-        return [];
+        return [], [];
     }
 
     const candidateMoves = [];
+    const selectionPool = [];
     for (let row = 0; row < gameLogicHandler.puzzleSize(); row++) {
+        selectionPool.push([row, col]);
         if (gameLogicHandler.isSafe(row, col)) {
             candidateMoves.push([ row, col ]);
         }
     }
 
-    return candidateMoves;
+    return [candidateMoves, selectionPool];
 }
 
 function _generateBacktrackingMoves(gameLogicHandler, method) {
@@ -52,27 +57,24 @@ function _generateBacktrackingMoves(gameLogicHandler, method) {
 
 export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod = 'row') {
     const gameLogicHandler = new GameLogicHandler(puzzleGrid);
-    stepsWidget.push({
-        action: 'message',
-        message: "Starting backtracking solver"
-    });
 
     function solveBacktrackingRecursive() {
-        const candidateMoves = _generateBacktrackingMoves(gameLogicHandler, moveRankMethod);
+        const [candidateMoves, selectionPool] = _generateBacktrackingMoves(gameLogicHandler, moveRankMethod);
         const candidateMovesStr = _formatCandidateMovesStr(candidateMoves);
         const level = gameLogicHandler.numPlacedQueens();
 
         if (candidateMoves.length > 0) {
             stepsWidget.push({
                 message: `Candidate moves at backtracking level ${level}: ${candidateMovesStr}`,
-                action: 'highlightCells',
+                action: GameSteps.HIGHLIGHT_CELLS,
                 args: { cells: candidateMoves }
             });
         }
         else {
             stepsWidget.push({
                 message: `No candidate moves at backtracking level ${level}`,
-                action: 'message'
+                action: GameSteps.HIGHLIGHT_CELLS,
+                args: { cells: selectionPool }
             })
         }
 
@@ -80,7 +82,7 @@ export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod 
             const [row, col] = candidateMoves[i];
             stepsWidget.push({
                 message: `Placing queen at: ${row}, ${col}`,
-                action: "placeQueen",
+                action: GameSteps.PLACE_QUEEN,
                 args: { row, col }
             });
             gameLogicHandler.placeQueen(row, col);
@@ -88,7 +90,7 @@ export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod 
             if (gameLogicHandler.isSolved()) {
                 stepsWidget.push({
                     message: "Found a solution!",
-                    action: 'highlightSolution'
+                    action: GameSteps.HIGHLIGHT_SOLUTION,
                 });
                 return [...gameLogicHandler.getPlacedQueens()];
             }
@@ -100,7 +102,7 @@ export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod 
 
             stepsWidget.push({
                 message: `Removing queen from: ${row}, ${col}`,
-                action: "removeQueen",
+                action: GameSteps.REMOVE_QUEEN,
                 args: { row, col }
             });
             gameLogicHandler.removeQueen(row, col);
@@ -109,7 +111,15 @@ export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod 
         return null;
     }
 
+    stepsWidget.toggleEnableReplay(false);
+    gameLogicHandler.clearMarkings();
+    stepsWidget.push({
+        message: "Starting backtracking solver",
+        action: GameSteps.CLEAR_MARKINGS
+    });
     const solution = solveBacktrackingRecursive();
+    stepsWidget.toggleEnableReplay(true);
+
     if (solution) {
         return { solution, solved: true };
     } else {

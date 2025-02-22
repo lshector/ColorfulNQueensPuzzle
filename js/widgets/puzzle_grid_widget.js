@@ -53,6 +53,8 @@
       for (let j = 0; j < this.size; j++) {
         const cell = document.createElement('div');
         cell.classList.add('grid-cell');
+        cell.style.position = 'relative';
+        this._addLabels(cell);
 
         if (this._callback) {
           // re-assign callback
@@ -122,6 +124,18 @@
     }
   }
 
+  _addLabels(cell) {
+    const centerLabel = document.createElement('span');
+    centerLabel.classList.add('label-center');
+    centerLabel.textContent = ' ';
+    cell.appendChild(centerLabel);
+
+    const topLeftLabel = document.createElement('span');
+    topLeftLabel.classList.add('label-top-left');
+    topLeftLabel.textContent = ' ';
+    cell.appendChild(topLeftLabel);
+  }
+
   /**
    * Gets the grid cell element at the given row and column.
    * @param {number} row The row index (0-based).
@@ -141,8 +155,13 @@
    */
   _applyCellUpdate(cell, update) {
     Object.assign(cell.style, update);
-    if (update.textContent) {
-      cell.textContent = update.textContent;
+    if (update.centerLabel !== undefined) {
+      const centerLabel = cell.querySelector('.label-center');
+      if (centerLabel) centerLabel.textContent = update.centerLabel;
+    }
+    if (update.topLeftLabel !== undefined) {
+      const topLeftLabel = cell.querySelector('.label-top-left');
+      if (topLeftLabel) topLeftLabel.textContent = update.topLeftLabel;
     }
   }
 }
