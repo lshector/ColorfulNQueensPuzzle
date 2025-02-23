@@ -1,12 +1,14 @@
 import { GameLogicHandler } from "./game_logic_handler.js";
 
 export const GameSteps = Object.freeze({
-  MESSAGE            : Symbol("MESSAGE"),
-  CLEAR_MARKINGS     : Symbol("CLEAR_MARKINGS"),
-  PLACE_QUEEN        : Symbol("PLACE_QUEEN"),
-  REMOVE_QUEEN       : Symbol("REMOVE_QUEEN"),
-  HIGHLIGHT_CELLS    : Symbol("HIGHLIGHT_CELLS"),
-  HIGHLIGHT_SOLUTION : Symbol("HIGHLIGHT_SOLUTION")
+  MESSAGE                : Symbol("MESSAGE"),
+  CLEAR_MARKINGS         : Symbol("CLEAR_MARKINGS"),
+  PLACE_QUEEN            : Symbol("PLACE_QUEEN"),
+  REMOVE_QUEEN           : Symbol("REMOVE_QUEEN"),
+  HIGHLIGHT_CELLS        : Symbol("HIGHLIGHT_CELLS"),
+  HIGHLIGHT_SOLUTION     : Symbol("HIGHLIGHT_SOLUTION"),
+  ADD_CONSTRAINT_TO_ROWS : Symbol("ADD_CONSTRAINT_TO_ROWS"),
+  ADD_CONSTRAINT_TO_COLS : Symbol("ADD_CONSTRAINT_TO_COLS")
 });
 
 export class GameStepsWidget {
@@ -147,6 +149,14 @@ export class GameStepsWidget {
         break;
       case GameSteps.HIGHLIGHT_CELLS:
         updatedCells = step.args.cells;
+        break;
+      case GameSteps.HIGHLIGHT_SOLUTION:
+        break;
+      case GameSteps.ADD_CONSTRAINT_TO_ROWS:
+        updatedCells = this.gameLogicHandler.addConstraintToRows(step.args.rows, step.args.excludeColors);
+        break;
+      case GameSteps.ADD_CONSTRAINT_TO_COLS:
+        updatedCells = this.gameLogicHandler.addConstraintToCols(step.args.cols, step.args.excludeColors);
         break;
       case GameSteps.HIGHLIGHT_SOLUTION:
         break;

@@ -17,8 +17,9 @@ function deduceQueenPlacement(gameLogicHandler, stepsWidget) {
 
       if (numUpdatedCells > 0) {
         stepsWidget.push({
-          message: `There is a single empty cell (${row}, ${col}) for color group ${colorGroup}.\n` +
-                   `Therefore, a queen must be placed there.\nGained information about ${numUpdatedCells} cells.`,
+          message: `Color group ${colorGroup} only has one empty cell (${row}, ${col}).\n` +
+                   `Therefore, a queen must be placed there.\n` +
+                   `Gained information about ${numUpdatedCells} cells.`,
           action: GameSteps.PLACE_QUEEN,
           args: { row, col }
         });
@@ -35,41 +36,50 @@ function deduceSingleRowCol(gameLogicHandler, stepsWidget) {
   const emptyCellsPerColor = gameLogicHandler.getEmptyCellsPerColor();
 
   const deductionRules = {
-    color_in_single_row: (label) => new Set(Array.from(emptyCellsPerColor[label].values()).map(([row]) => row)).size === 1,
-    color_in_single_column: (label) => new Set(Array.from(emptyCellsPerColor[label].values()).map(([, col]) => col)).size === 1,
+    color_in_single_row: (colorGroup) => new Set(Array.from(emptyCellsPerColor[colorGroup].values()).map(([row]) => row)).size === 1,
+    color_in_single_column: (colorGroup) => new Set(Array.from(emptyCellsPerColor[colorGroup].values()).map(([, col]) => col)).size === 1,
   };
 
   const deductionActions = {
-    color_in_single_row: (label) => {
-      const [row] = emptyCellsPerColor[label].values().next().value;
-      return [gameLogicHandler.addConstraintToRows(row, [label]), row];
+    color_in_single_row: (colorGroup) => {
+      const [row] = emptyCellsPerColor[colorGroup].values().next().value;
+      return [gameLogicHandler.addConstraintToRows(row, [colorGroup]), row];
     },
-    color_in_single_column: (label) => {
-      const [, col] = emptyCellsPerColor[label].values().next().value;
-      return [gameLogicHandler.addConstraintToColumns(col, [label]), col];
+    color_in_single_column: (colorGroup) => {
+      const [, col] = emptyCellsPerColor[colorGroup].values().next().value;
+      return [gameLogicHandler.addConstraintToColumns(col, [colorGroup]), col];
     },
   };
 
   for (const name in deductionRules) {
-    const labelMeetsCondition = deductionRules[name];
-    const matchingColors = Array.from(Array(gameLogicHandler.puzzleSize()).keys()).filter(label => labelMeetsCondition(label));
+    const colorGroupMeetsCondition = deductionRules[name];
+    const matchingColors = Array.from(Array(gameLogicHandler.puzzleSize()).keys()).filter(colorGroup => colorGroupMeetsCondition(colorGroup));
 
     if (matchingColors.length > 0) {
-      for (const label of matchingColors) {
-        const [updatedCells, key] = deductionActions[name](label);
-        const numUpdatedCells = updatedCells.size;
+      for (const colorGroup of matchingColors) {
+        const [updatedCells, key] = deductionActions[name](colorGroup);
+        const numUpdatedCells = updatedCells.length;
 
         if (numUpdatedCells > 0) {
           numDeductions += 1;
           if (name === 'color_in_single_row') {
-            stepsWidget.push({ action: 'addConstraintToRows', rows: key, excludeColors: [label] });
+            stepsWidget.push({
+              message: `Color group ${colorGroup} only appears in one row (${key}).\n` +
+                       `Therefore, all cells in that row which don't have that color can be marked with an 'X'.\n` +
+                       `Gained information about ${numUpdatedCells} cells.`,
+              action: GameSteps.ADD_CONSTRAINT_TO_ROWS,
+              args: { rows: key, excludeColors: [colorGroup] }
+            });
           }
           else if (name === 'color_in_single_col') {
-            stepsWidget.push({ action: 'addConstraintToColumns', cols: key, excludeColors: [label] });
+            stepsWidget.push({
+              message: `Color group ${colorGroup} only appears in one column (${key}).\n` +
+                       `Therefore, all cells in that column which don't have that color can be marked with an 'X'.\n` +
+                       `Gained information about ${numUpdatedCells} cells.`,
+              action: GameSteps.ADD_CONSTRAINT_TO_COLS,
+              args: { cols: key, excludeColors: [colorGroup] }
+            });
           }
-
-          console.debug(`Deduced rule '${name}' for color ${label}`);
-          console.debug(`   Gained information about ${numUpdatedCells} cells`);
         }
       }
     }
@@ -87,15 +97,15 @@ function deduceSingleRowCol(gameLogicHandler, stepsWidget) {
     const colorToEmptyRows = {};
     const colorToEmptyColumns = {};
 
-    for (let label = 0; label < N; label++) {
-      const cells = emptyCellsPerColor[label];
-      colorToEmptyRows[label] = new Set();
-      colorToEmptyColumns[label] = new Set();
+    for (let colorGroup = 0; colorGroup < N; colorGroup++) {
+      const cells = emptyCellsPerColor[colorGroup];
+      colorToEmptyRows[colorGroup] = new Set();
+      colorToEmptyColumns[colorGroup] = new Set();
       for (const [row, _] of cells) {
-        colorToEmptyRows[label].add(row);
+        colorToEmptyRows[colorGroup].add(row);
       }
       for (const [_, col] of cells) {
-        colorToEmptyColumns[label].add(col);
+        colorToEmptyColumns[colorGroup].add(col);
       }
     }
 
@@ -213,7 +223,7 @@ function deduceSingleRowCol(gameLogicHandler, stepsWidget) {
   export function solvePuzzleDeductive(puzzleGrid, stepsWidget) {
     const deductionMethods = [
       deduceQueenPlacement,
-      //deduceSingleRowCol,
+      deduceSingleRowCol,
       //deduceUsingColorExclusivity,
       //deduceInvalidPlacements,
     ];
