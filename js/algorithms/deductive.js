@@ -190,29 +190,29 @@ function deduceSingleRowCol(gameLogicHandler, stepsWidget) {
 
     for (const cell of emptyCells) {
       const [row, col] = cell;
+
       let isInvalidPlacement = false;
+      let reason = null;
       gameLogicHandler.placeQueen(row, col);
       const newEmptyCells = gameLogicHandler.getEmptyCellsPerColor();
-
-      for (let i = 0; i < puzzle.N; i++) {
-        if (newEmptyCells[i].size === 0 && !puzzle.placedQueensColors.has(i)) { // Use .size for Set length
-          console.log(`Placing a queen at (${row}, ${col}) would result in no valid moves for color ${i}`);
+      for (let i = 0; i < newEmptyCells.length; i++) {
+        if (newEmptyCells[i].length === 0 && !gameLogicHandler.colorGroupHasQueen(i)) {
+          reason = `Placing a queen at (${row}, ${col}) would result in no valid moves for color ${i}.`;
           isInvalidPlacement = true;
           break; // Important: Exit the inner loop once invalidity is found
         }
       }
-
-      gameLogicHandler.removeQueenFromSolver(row, col);
+      gameLogicHandler.removeQueen(row, col);
 
       if (isInvalidPlacement) {
-        stepsWidget.push({
-
-        })
-        if (stepsWidget) {
-          stepsWidget.push({ action: 'addConstraintToCell', row, col });
-        }
-
         gameLogicHandler.addConstraintToCell(row, col);
+        stepsWidget.push({
+          message: `${reason}\n` +
+                   `Therefore, the cell can be marked with an 'X'.\n` +
+                   `Gained information about 1 cell.`,
+          action: GameSteps.ADD_CONSTRAINT_TO_CELL,
+          args: { row: row, col: col }
+        });
         numDeductions += 1;
       }
     }
@@ -225,7 +225,7 @@ function deduceSingleRowCol(gameLogicHandler, stepsWidget) {
       deduceQueenPlacement,
       deduceSingleRowCol,
       //deduceUsingColorExclusivity,
-      //deduceInvalidPlacements,
+      deduceInvalidPlacements,
     ];
 
     const gameLogicHandler = new GameLogicHandler(puzzleGrid);
@@ -258,7 +258,7 @@ function deduceSingleRowCol(gameLogicHandler, stepsWidget) {
         action: GameSteps.HIGHLIGHT_SOLUTION
       });
 
-      let solution = puzzleGrid.getPlacedQueens();
+      let solution = gameLogicHandler.getPlacedQueens();
       return { solution, solved: true };
     } else {
       return { solution: null, solved: false };

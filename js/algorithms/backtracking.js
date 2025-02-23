@@ -111,14 +111,12 @@ export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod 
         return null;
     }
 
-    stepsWidget.toggleEnableReplay(false);
     gameLogicHandler.clearMarkings();
     stepsWidget.push({
         message: "Starting backtracking solver",
         action: GameSteps.CLEAR_MARKINGS
     });
     const solution = solveBacktrackingRecursive();
-    stepsWidget.toggleEnableReplay(true);
 
     if (solution) {
         return { solution, solved: true };

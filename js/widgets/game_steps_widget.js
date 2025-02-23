@@ -7,6 +7,7 @@ export const GameSteps = Object.freeze({
   REMOVE_QUEEN           : Symbol("REMOVE_QUEEN"),
   HIGHLIGHT_CELLS        : Symbol("HIGHLIGHT_CELLS"),
   HIGHLIGHT_SOLUTION     : Symbol("HIGHLIGHT_SOLUTION"),
+  ADD_CONSTRAINT_TO_CELL : Symbol("ADD_CONSTRAINT_TO_CELL"),
   ADD_CONSTRAINT_TO_ROWS : Symbol("ADD_CONSTRAINT_TO_ROWS"),
   ADD_CONSTRAINT_TO_COLS : Symbol("ADD_CONSTRAINT_TO_COLS")
 });
@@ -151,6 +152,9 @@ export class GameStepsWidget {
         updatedCells = step.args.cells;
         break;
       case GameSteps.HIGHLIGHT_SOLUTION:
+        break;
+      case GameSteps.ADD_CONSTRAINT_TO_CELL:
+        updatedCells = this.gameLogicHandler.addConstraintToCell(step.args.row, step.args.col);
         break;
       case GameSteps.ADD_CONSTRAINT_TO_ROWS:
         updatedCells = this.gameLogicHandler.addConstraintToRows(step.args.rows, step.args.excludeColors);

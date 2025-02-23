@@ -179,7 +179,7 @@ class SolveMenuControls extends MenuControls {
     runAlgorithm(algorithm) {
         this.selectedAlgorithm = algorithm;
         this.stepsWidget.clearSteps();
-
+        this.stepsWidget.toggleEnableReplay(false);
         if (algorithm === 'backtracking') {
             const result = solvePuzzleBacktracking(this.puzzleGrid, this.stepsWidget);
 
@@ -197,7 +197,7 @@ class SolveMenuControls extends MenuControls {
                 console.log("No solution found.");
             }
         }
-
+        this.stepsWidget.toggleEnableReplay(true);
         this.puzzleGrid.render();
     }
 }
