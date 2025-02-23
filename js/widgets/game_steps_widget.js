@@ -5,8 +5,6 @@ export const GameSteps = Object.freeze({
   CLEAR_MARKINGS         : Symbol("CLEAR_MARKINGS"),
   PLACE_QUEEN            : Symbol("PLACE_QUEEN"),
   REMOVE_QUEEN           : Symbol("REMOVE_QUEEN"),
-  HIGHLIGHT_CELLS        : Symbol("HIGHLIGHT_CELLS"),
-  HIGHLIGHT_SOLUTION     : Symbol("HIGHLIGHT_SOLUTION"),
   ADD_CONSTRAINT_TO_CELL : Symbol("ADD_CONSTRAINT_TO_CELL"),
   ADD_CONSTRAINT_TO_ROWS : Symbol("ADD_CONSTRAINT_TO_ROWS"),
   ADD_CONSTRAINT_TO_COLS : Symbol("ADD_CONSTRAINT_TO_COLS")
@@ -135,7 +133,7 @@ export class GameStepsWidget {
     this.stepsText.value = `[Step ${stepNumber}]\n${step.message}`;
     console.log(this.stepsText.value);
 
-    let updatedCells = null;
+    let updatedCells;
     switch (step.action) {
       case GameSteps.MESSAGE:
         break;
@@ -148,11 +146,6 @@ export class GameStepsWidget {
       case GameSteps.REMOVE_QUEEN:
         updatedCells = this.gameLogicHandler.removeQueen(step.args.row, step.args.col);
         break;
-      case GameSteps.HIGHLIGHT_CELLS:
-        updatedCells = step.args.cells;
-        break;
-      case GameSteps.HIGHLIGHT_SOLUTION:
-        break;
       case GameSteps.ADD_CONSTRAINT_TO_CELL:
         updatedCells = this.gameLogicHandler.addConstraintToCell(step.args.row, step.args.col);
         break;
@@ -162,17 +155,21 @@ export class GameStepsWidget {
       case GameSteps.ADD_CONSTRAINT_TO_COLS:
         updatedCells = this.gameLogicHandler.addConstraintToCols(step.args.cols, step.args.excludeColors);
         break;
-      case GameSteps.HIGHLIGHT_SOLUTION:
-        break;
       default:
         console.error(`Unknown action`);
     }
 
-    if (updatedCells === null) {
-      this.gameLogicHandler.highlightAllCells();
+    if (step.highlightedCells !== undefined) {
+      // highlight the cells specified by the step
+      this.gameLogicHandler.highlightCells(step.highlightedCells);
+    }
+    else if (updatedCells !== undefined) {
+      // highlight the cells affected by the operation
+      this.gameLogicHandler.highlightCells(updatedCells);
     }
     else {
-      this.gameLogicHandler.highlightCells(updatedCells);
+      // nothing to highlight -- just highlight all cells
+      this.gameLogicHandler.highlightAllCells();
     }
   }
 

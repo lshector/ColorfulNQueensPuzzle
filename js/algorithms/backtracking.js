@@ -66,15 +66,15 @@ export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod 
         if (candidateMoves.length > 0) {
             stepsWidget.push({
                 message: `Candidate moves at backtracking level ${level}: ${candidateMovesStr}`,
-                action: GameSteps.HIGHLIGHT_CELLS,
-                args: { cells: candidateMoves }
+                action: GameSteps.MESSAGE,
+                highlightedCells: candidateMoves
             });
         }
         else {
             stepsWidget.push({
                 message: `No candidate moves at backtracking level ${level}`,
-                action: GameSteps.HIGHLIGHT_CELLS,
-                args: { cells: selectionPool }
+                action: GameSteps.MESSAGE,
+                highlightedCells: selectionPool
             })
         }
 
@@ -90,7 +90,7 @@ export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod 
             if (gameLogicHandler.isSolved()) {
                 stepsWidget.push({
                     message: "Found a solution!",
-                    action: GameSteps.HIGHLIGHT_SOLUTION,
+                    action: GameSteps.MESSAGE,
                 });
                 return [...gameLogicHandler.getPlacedQueens()];
             }

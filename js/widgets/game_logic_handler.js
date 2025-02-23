@@ -136,6 +136,7 @@ export class GameLogicHandler {
             }
         }
 
+        console.log(cells);
         for (const cell of cells) {
             const [row, col] = cell;
             this._puzzleGrid.setHighlightAt(row, col, true);
@@ -231,11 +232,9 @@ export class GameLogicHandler {
     }
 
     colorGroupHasQueen(colorGroup) {
-        console.log(this._placedQueens)
         for (const queen of this._placedQueens) {
             const [row, col] = queen.split(',').map(Number);
 
-            console.log(row, col);
             if (this._puzzleGrid.getColorGroupAt(row, col) === colorGroup) {
                 return true;
             }

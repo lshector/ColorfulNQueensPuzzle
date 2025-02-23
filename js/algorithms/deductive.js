@@ -186,34 +186,45 @@ function deduceSingleRowCol(gameLogicHandler, stepsWidget) {
 
   function deduceInvalidPlacements(gameLogicHandler, stepsWidget) {
     let numDeductions = 0;
-    const emptyCells = gameLogicHandler.getEmptyCells();
+    const emptyCellsPerColor = gameLogicHandler.getEmptyCellsPerColor();
+    for (let colorIndex = 0; colorIndex < emptyCellsPerColor.length; colorIndex++) {
+      for (const cell of emptyCellsPerColor[colorIndex]) {
+        // begin by assuming that the placement is valid
+        let isInvalidPlacement = false;
+        let reason;
+        let highlightedCells;
 
-    for (const cell of emptyCells) {
-      const [row, col] = cell;
+        // temporarily place a queen in this cell
+        const [row, col] = cell;
+        gameLogicHandler.placeQueen(row, col);
 
-      let isInvalidPlacement = false;
-      let reason = null;
-      gameLogicHandler.placeQueen(row, col);
-      const newEmptyCells = gameLogicHandler.getEmptyCellsPerColor();
-      for (let i = 0; i < newEmptyCells.length; i++) {
-        if (newEmptyCells[i].length === 0 && !gameLogicHandler.colorGroupHasQueen(i)) {
-          reason = `Placing a queen at (${row}, ${col}) would result in no valid moves for color ${i}.`;
-          isInvalidPlacement = true;
-          break; // Important: Exit the inner loop once invalidity is found
+        // check if a color is left with no valid moves
+        const tmpEmptyCellsPerColor = gameLogicHandler.getEmptyCellsPerColor();
+        for (let i = 0; i < tmpEmptyCellsPerColor.length; i++) {
+          if (tmpEmptyCellsPerColor[i].length === 0 && !gameLogicHandler.colorGroupHasQueen(i)) {
+            isInvalidPlacement = true;
+            reason = `Placing a queen at (${row}, ${col}) would result in no valid moves for color ${i}.`;
+            highlightedCells = [[row, col]].concat(emptyCellsPerColor[i]);
+            break; // Important: Exit the inner loop once invalidity is found
+          }
         }
-      }
-      gameLogicHandler.removeQueen(row, col);
 
-      if (isInvalidPlacement) {
-        gameLogicHandler.addConstraintToCell(row, col);
-        stepsWidget.push({
-          message: `${reason}\n` +
-                   `Therefore, the cell can be marked with an 'X'.\n` +
-                   `Gained information about 1 cell.`,
-          action: GameSteps.ADD_CONSTRAINT_TO_CELL,
-          args: { row: row, col: col }
-        });
-        numDeductions += 1;
+        // remove the temporarily placed queen
+        gameLogicHandler.removeQueen(row, col);
+
+        if (isInvalidPlacement) {
+          gameLogicHandler.addConstraintToCell(row, col);
+          stepsWidget.push({
+            message: `${reason}\n` +
+                     `Therefore, the cell can be marked with an 'X'.\n` +
+                     `Gained information about 1 cell.`,
+            action: GameSteps.ADD_CONSTRAINT_TO_CELL,
+            highlightedCells: highlightedCells,
+            args: { row: row, col: col }
+          });
+          numDeductions += 1;
+          return numDeductions;
+        }
       }
     }
 
@@ -255,7 +266,7 @@ function deduceSingleRowCol(gameLogicHandler, stepsWidget) {
     if (gameLogicHandler.isSolved()) {
       stepsWidget.push({
         message: "Found a solution!",
-        action: GameSteps.HIGHLIGHT_SOLUTION
+        action: GameSteps.MESSAGE
       });
 
       let solution = gameLogicHandler.getPlacedQueens();
