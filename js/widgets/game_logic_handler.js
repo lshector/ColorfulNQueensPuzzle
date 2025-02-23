@@ -47,6 +47,11 @@ export class GameLogicHandler {
         }
     }
 
+    resizePuzzleGrid(newSize) {
+        this._puzzleGrid.resize(newSize);
+        this.clearMarkings();
+    }
+
     placeQueen(row, col) {
         let updatedCells = [];
 

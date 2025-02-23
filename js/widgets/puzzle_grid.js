@@ -27,6 +27,11 @@ export class PuzzleGrid {
     return PuzzleGrid._instances[containerId];
   }
 
+  resize(newSize) {
+    this._widget.resizeGrid(newSize);
+    this._state.resize(newSize);
+  }
+
   size() {
     return this._widget.size;
   }

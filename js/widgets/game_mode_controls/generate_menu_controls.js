@@ -26,24 +26,18 @@ export class GenerateMenuControls extends MenuControls {
     async generatePuzzle(N, seed, maxAttempts, batch) {
         console.log(`Generating puzzleGrid with N=${N}, seed='${seed}', maxAttempts=${maxAttempts}, batch=${batch}`);
 
-        const generator = new PuzzleGenerator();
-
         this.stepsWidget.clearSteps();
+        this.stepsWidget.toggleEnableReplay(false);
         try {
-            const result = await generator.run(N, this.stepsWidget, seed, maxAttempts);
-
-            console.log("Puzzle generated successfully:", result.puzzleGrid);
-            console.log("Stats:", result.stats);
-            //console.log("Event Log:", eventLog);
-            this.puzzleGrid = result.puzzleGrid;
-
-            console.log(result)
-
-            this.stepsWidget.puzzleGrid = this.puzzleGrid;
+            const generator = new PuzzleGenerator(this.puzzleGrid);
+            const stats = generator.run(N, this.stepsWidget, seed, maxAttempts);
+            console.log("Puzzle generated successfully:", this.puzzleGrid);
+            console.log("Stats:", stats);
         } catch (error) {
             console.error("Puzzle generation failed:", error);
             alert("Puzzle generation failed. See console for details.");
         }
+        this.stepsWidget.toggleEnableReplay(true);
     }
 }
 

@@ -2,7 +2,7 @@ import { PuzzleGridWidget } from "../widgets/puzzle_grid_widget.js"
 import { solvePuzzleBacktracking } from "./backtracking.js"
 import { solvePuzzleDeductive } from "./deductive.js"
 import { getUnpaintedCellCandidates, paintSingleCell } from "./logic.js"
-import { enableLogging, disableLogging } from "../logger.js"
+import { GameLogicHandler, GameSteps } from "../widgets/game_logic_handler.js"
 
 class Stats {
     constructor() {
@@ -88,9 +88,20 @@ async function generatePuzzleSingleAttempt(puzzle, rng, stepsWidget) {
 }
 
 export class PuzzleGenerator {
-    async run(N, stepsWidget, seed = "colorful-n-queens", maxNumAttempts = 1) {
+    constructor(puzzleGrid) {
+        this._puzzleGrid = puzzleGrid;
+    }
+
+    run(N, stepsWidget, seed = "colorful-n-queens", maxNumAttempts = 1) {
+        const gameLogicHandler = new GameLogicHandler(this._puzzleGrid);
+
         const startTime = Date.now();
-        console.info(`Generating puzzle of size ${N}`);
+        gameLogicHandler.resizePuzzleGrid(N);
+        stepsWidget.push({
+            message: `Generating puzzle of size ${N}`,
+            action: GameSteps.RESIZE_PUZZLE_GRID,
+            args: { newSize: N }
+        });
 
         const stats = new Stats();
         let numAttempts = 0;
@@ -130,7 +141,7 @@ export class PuzzleGenerator {
             console.info(`>>>>> Starting attempt ${numAttempts} to generate a valid puzzle`);
             const attemptStartTime = Date.now();
             puzzle = new PuzzleGridWidget(N);
-            [generatedPuzzle, attempt] = await generatePuzzleSingleAttempt(puzzle, rng, stepsWidget);
+            [generatedPuzzle, attempt] = generatePuzzleSingleAttempt(puzzle, rng, stepsWidget);
             const attemptEndTime = Date.now();
             attempt.duration = (attemptEndTime - attemptStartTime) / 1000;
             console.info(`Attempt ${numAttempts} took ${attempt.duration} seconds`);
