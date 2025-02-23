@@ -1,5 +1,5 @@
 import { GameLogicHandler } from "../widgets/game_logic_handler.js";
-import { GameSteps, GameStepsWidget } from "../widgets/game_steps_widget.js";
+import { GameSteps } from "../widgets/game_logic_handler.js";
 
 function _formatCandidateMovesStr(candidateMoves) {
     let candidateMovesStr = ""

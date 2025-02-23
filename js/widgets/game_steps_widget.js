@@ -1,15 +1,5 @@
 import { GameLogicHandler } from "./game_logic_handler.js";
 
-export const GameSteps = Object.freeze({
-  MESSAGE                : Symbol("MESSAGE"),
-  CLEAR_MARKINGS         : Symbol("CLEAR_MARKINGS"),
-  PLACE_QUEEN            : Symbol("PLACE_QUEEN"),
-  REMOVE_QUEEN           : Symbol("REMOVE_QUEEN"),
-  ADD_CONSTRAINT_TO_CELL : Symbol("ADD_CONSTRAINT_TO_CELL"),
-  ADD_CONSTRAINT_TO_ROWS : Symbol("ADD_CONSTRAINT_TO_ROWS"),
-  ADD_CONSTRAINT_TO_COLS : Symbol("ADD_CONSTRAINT_TO_COLS")
-});
-
 export class GameStepsWidget {
   constructor(containerId, puzzleGrid) {
     this.containerId = containerId;
@@ -133,44 +123,7 @@ export class GameStepsWidget {
     this.stepsText.value = `[Step ${stepNumber}]\n${step.message}`;
     console.log(this.stepsText.value);
 
-    let updatedCells;
-    switch (step.action) {
-      case GameSteps.MESSAGE:
-        break;
-      case GameSteps.CLEAR_MARKINGS:
-        this.gameLogicHandler.clearMarkings();
-        break;
-      case GameSteps.PLACE_QUEEN:
-        updatedCells = this.gameLogicHandler.placeQueen(step.args.row, step.args.col);
-        break;
-      case GameSteps.REMOVE_QUEEN:
-        updatedCells = this.gameLogicHandler.removeQueen(step.args.row, step.args.col);
-        break;
-      case GameSteps.ADD_CONSTRAINT_TO_CELL:
-        updatedCells = this.gameLogicHandler.addConstraintToCell(step.args.row, step.args.col);
-        break;
-      case GameSteps.ADD_CONSTRAINT_TO_ROWS:
-        updatedCells = this.gameLogicHandler.addConstraintToRows(step.args.rows, step.args.excludeColors);
-        break;
-      case GameSteps.ADD_CONSTRAINT_TO_COLS:
-        updatedCells = this.gameLogicHandler.addConstraintToCols(step.args.cols, step.args.excludeColors);
-        break;
-      default:
-        console.error(`Unknown action`);
-    }
-
-    if (step.highlightedCells !== undefined) {
-      // highlight the cells specified by the step
-      this.gameLogicHandler.highlightCells(step.highlightedCells);
-    }
-    else if (updatedCells !== undefined) {
-      // highlight the cells affected by the operation
-      this.gameLogicHandler.highlightCells(updatedCells);
-    }
-    else {
-      // nothing to highlight -- just highlight all cells
-      this.gameLogicHandler.highlightAllCells();
-    }
+    this.gameLogicHandler.replayStep(step);
   }
 
   initializeSlider() {

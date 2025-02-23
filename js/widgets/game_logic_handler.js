@@ -1,6 +1,16 @@
 import { isSafe, getAffectedCellsFromPlacingQueenAt } from "../algorithms/logic.js";
 import { MARKING_NONE, MARKING_X, MARKING_QUEEN } from "./puzzle_grid_state.js"
 
+export const GameSteps = Object.freeze({
+    MESSAGE                : Symbol("MESSAGE"),
+    CLEAR_MARKINGS         : Symbol("CLEAR_MARKINGS"),
+    PLACE_QUEEN            : Symbol("PLACE_QUEEN"),
+    REMOVE_QUEEN           : Symbol("REMOVE_QUEEN"),
+    ADD_CONSTRAINT_TO_CELL : Symbol("ADD_CONSTRAINT_TO_CELL"),
+    ADD_CONSTRAINT_TO_ROWS : Symbol("ADD_CONSTRAINT_TO_ROWS"),
+    ADD_CONSTRAINT_TO_COLS : Symbol("ADD_CONSTRAINT_TO_COLS")
+});
+
 export class GameLogicHandler {
     constructor(puzzleGrid) {
         this._puzzleGrid = puzzleGrid;
@@ -241,5 +251,46 @@ export class GameLogicHandler {
         }
 
         return false;
+    }
+
+    replayStep(step) {
+        let updatedCells;
+        switch (step.action) {
+        case GameSteps.MESSAGE:
+            break;
+        case GameSteps.CLEAR_MARKINGS:
+            this.clearMarkings();
+            break;
+        case GameSteps.PLACE_QUEEN:
+            updatedCells = this.placeQueen(step.args.row, step.args.col);
+            break;
+        case GameSteps.REMOVE_QUEEN:
+            updatedCells = this.removeQueen(step.args.row, step.args.col);
+            break;
+        case GameSteps.ADD_CONSTRAINT_TO_CELL:
+            updatedCells = this.addConstraintToCell(step.args.row, step.args.col);
+            break;
+        case GameSteps.ADD_CONSTRAINT_TO_ROWS:
+            updatedCells = this.addConstraintToRows(step.args.rows, step.args.excludeColors);
+            break;
+        case GameSteps.ADD_CONSTRAINT_TO_COLS:
+            updatedCells = this.addConstraintToCols(step.args.cols, step.args.excludeColors);
+            break;
+        default:
+            console.error(`Unknown action`);
+        }
+
+        if (step.highlightedCells !== undefined) {
+            // highlight the cells specified by the step
+            this.highlightCells(step.highlightedCells);
+        }
+        else if (updatedCells !== undefined) {
+            // highlight the cells affected by the operation
+            this.highlightCells(updatedCells);
+        }
+        else {
+            // nothing to highlight -- just highlight all cells
+            this.highlightAllCells();
+        }
     }
 }
