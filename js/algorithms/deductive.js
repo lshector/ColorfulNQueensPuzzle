@@ -1,4 +1,5 @@
 import { GameLogicHandler } from "../widgets/game_logic_handler.js";
+import { GameSteps, GameStepsWidget } from "../widgets/game_steps_widget.js";
 
 function deduceQueenPlacement(gameLogicHandler, stepsWidget) {
   let numDeductions = 0;
@@ -12,13 +13,13 @@ function deduceQueenPlacement(gameLogicHandler, stepsWidget) {
     for (const colorGroup of matchingColors) {
       const [row, col] = emptyCellsPerColor[colorGroup].values().next().value;
       const updatedCells = gameLogicHandler.placeQueen(row, col);
-      const numUpdatedCells = updatedCells.size;
+      const numUpdatedCells = updatedCells.length;
 
       if (numUpdatedCells > 0) {
         stepsWidget.push({
-          message: `There is a single empty cell (${row}, ${col}) for color group ${colorGroup}, ` +
-                   `so a queen must be placed there. Gained information about ${numUpdatedCells} cells.`,
-          action: "placeQueen",
+          message: `There is a single empty cell (${row}, ${col}) for color group ${colorGroup}.\n` +
+                   `Therefore, a queen must be placed there.\nGained information about ${numUpdatedCells} cells.`,
+          action: GameSteps.PLACE_QUEEN,
           args: { row, col }
         });
         numDeductions += 1;
@@ -220,7 +221,7 @@ function deduceSingleRowCol(gameLogicHandler, stepsWidget) {
     const gameLogicHandler = new GameLogicHandler(puzzleGrid);
     stepsWidget.push({
       message: "Starting deductive solver",
-      action: 'message',
+      action: GameSteps.CLEAR_MARKINGS,
     });
 
     while (gameLogicHandler.isSolved() === false) {
@@ -235,7 +236,7 @@ function deduceSingleRowCol(gameLogicHandler, stepsWidget) {
       if (numDeductions === 0) {
         stepsWidget.push({
           message: "Cannot make any further deductions",
-          action: 'message'
+          action: GameSteps.MESSAGE
         });
         break;
       }
@@ -244,7 +245,7 @@ function deduceSingleRowCol(gameLogicHandler, stepsWidget) {
     if (gameLogicHandler.isSolved()) {
       stepsWidget.push({
         message: "Found a solution!",
-        action: 'highlightSolution'
+        action: GameSteps.HIGHLIGHT_SOLUTION
       });
 
       let solution = puzzleGrid.getPlacedQueens();

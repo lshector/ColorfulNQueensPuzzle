@@ -86,7 +86,7 @@ export class GameLogicHandler {
     }
 
     isSafe(row, col) {
-        return isSafe(this._puzzleGrid, row, col);
+        return this._puzzleGrid.getMarkingAt(row, col) === MARKING_NONE;
     }
 
     getEmptyCells() {
