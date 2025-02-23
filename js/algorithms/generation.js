@@ -16,6 +16,7 @@ class Stats {
             this.duration = null;
             this.numPaintedCells = 0;
             this.numUnpaintedCells = 0;
+            this.succeeded = false;
         }
     };
 
@@ -26,17 +27,17 @@ class Stats {
     }
 }
 
-async function generatePuzzleSingleAttempt(puzzle, rng, stepsWidget) {
+function generatePuzzleSingleAttempt(gameLogicHandler, rng, stepsWidget) {
     const attempt = new Stats.GenerationStats();
 
     // Generate a valid placement for queens using solvePuzzleBacktracking
-    disableLogging();
-    const backtrackingResult = solvePuzzleBacktracking(puzzle.N, puzzle.labels);
+    stepsWidget.disableRecording();
+    const backtrackingResult = solvePuzzleBacktracking(gameLogicHandler._puzzleGrid, stepsWidget);
+    stepsWidget.enableRecording();
     if (!backtrackingResult.solved) {
         console.error("Backtracking failed to find a solution.");
-        return [false, attempt];
+        return attempt;
     }
-    enableLogging();
 
     const solution = backtrackingResult.solution.map(coordStr => {
       const [row, col] = coordStr.split(',').map(Number);
@@ -44,47 +45,49 @@ async function generatePuzzleSingleAttempt(puzzle, rng, stepsWidget) {
     });
 
     // Assign a color to each placed queen
-    for (let label = 0; label < puzzle.N; label++) {
-        const [row, col] = solution[label];
-        puzzle.labels[row][col] = label;
-        if (stepsWidget) {
-            stepsWidget.push({ action: "paintCell", row, col, label });
-        }
+    for (let colorGroup = 0; colorGroup < gameLogicHandler.puzzleSize(); colorGroup++) {
+        const [row, col] = solution[colorGroup];
+        gameLogicHandler.assignColorGroup(row, col, colorGroup);
+        stepsWidget.push({
+            message: `Assigning (${row},${col}) to color group ${colorGroup}`,
+            action: GameSteps.ASSIGN_COLOR_GROUP,
+            args: { row, col, colorGroup }
+        });
     }
 
     // Iteratively assign colors to each remaining cell
     while (true) {
-        puzzle.clearState();
-        const candidates = getUnpaintedCellCandidates(puzzle);
+        gameLogicHandler.clearMarkings();
+        const candidates = getUnpaintedCellCandidates(gameLogicHandler);
 
         if (Object.keys(candidates).length === 0) {
-            console.log(puzzle.labels)
             console.info("Painted all puzzle cells!");
             break;
         }
 
-        const painted = await paintSingleCell(puzzle, rng, candidates, attempt, stepsWidget);
+        const painted = paintSingleCell(gameLogicHandler, rng, candidates, attempt, stepsWidget);
         if (!painted) {
             console.info("Exhausted all possible selections to paint a cell");
-            return [false, attempt];
+            return attempt;
         }
     }
 
-    if (puzzle.hasUnpaintedCells()) {
+    if (gameLogicHandler.hasUnpaintedCells()) {
         throw new Error("Puzzle should not have unpainted cells at this point.");
     }
 
     // Make sure that the puzzle is solvable by deduction
-    disableLogging();
-    const deductionResult = solvePuzzleDeductive(puzzle);
-    enableLogging();
+    stepsWidget.disableRecording();
+    const deductionResult = solvePuzzleDeductive(gameLogicHandler._puzzleGrid, stepsWidget);
+    stepsWidget.enableRecording();
 
     if (!deductionResult.solved) {
         console.warn("Generated puzzle was complete but could not be solved by deduction");
-        return [false, attempt];
+        return attempt;
     }
 
-    return [true, attempt];
+    attempt.succeeded = true;
+    return attempt;
 }
 
 export class PuzzleGenerator {
@@ -93,6 +96,7 @@ export class PuzzleGenerator {
     }
 
     run(N, stepsWidget, seed = "colorful-n-queens", maxNumAttempts = 1) {
+        console.log(this._puzzleGrid);
         const gameLogicHandler = new GameLogicHandler(this._puzzleGrid);
 
         const startTime = Date.now();
@@ -105,21 +109,16 @@ export class PuzzleGenerator {
 
         const stats = new Stats();
         let numAttempts = 0;
-        let generatedPuzzle = false;
         let attempt = null;
-        let puzzle = null;
-
-        if (stepsWidget) {
-            stepsWidget.push({ action: "Begin Generation" });
-        }
-        while ((generatedPuzzle === false) && numAttempts < maxNumAttempts) {
-            console.info(`Seeding RNG using seed string '${seed}'`); // Log the current seed
+        while (numAttempts < maxNumAttempts) {
+            numAttempts++;
             const seedHash = this.hashString(seed);
-            console.debug(`Seed string hash: ${seedHash}`);
-
-            if (stepsWidget) {
-                stepsWidget.push({ action: "clearLabels" });
-            }
+            stepsWidget.push({
+                message: `Starting attempt ${numAttempts} to generate a valid puzzle\n` +
+                         `Seeding RNG using seed string '${seed}'\n` +
+                         `(Seed string hash: ${seedHash})`,
+                action: GameSteps.CLEAR_COLOR_GROUPS,
+            });
 
             const myrng = new Math.seedrandom(seedHash.toString()); // Initialize RNG *inside* run
             const rng = {
@@ -137,11 +136,8 @@ export class PuzzleGenerator {
                 }
             };
 
-            numAttempts++;
-            console.info(`>>>>> Starting attempt ${numAttempts} to generate a valid puzzle`);
             const attemptStartTime = Date.now();
-            puzzle = new PuzzleGridWidget(N);
-            [generatedPuzzle, attempt] = generatePuzzleSingleAttempt(puzzle, rng, stepsWidget);
+            attempt = generatePuzzleSingleAttempt(gameLogicHandler, rng, stepsWidget);
             const attemptEndTime = Date.now();
             attempt.duration = (attemptEndTime - attemptStartTime) / 1000;
             console.info(`Attempt ${numAttempts} took ${attempt.duration} seconds`);
@@ -149,27 +145,24 @@ export class PuzzleGenerator {
             attempt.seed = seed; // Store the current seed in stats
             stats.attempts.push(attempt);
 
-            if (generatedPuzzle === false) {
-                seed = myrng().toString(); // Generate a *new* seed string for the next attempt
-                console.debug(`Setting seed string to '${seed}' for next run`);
+            if (attempt.succeeded === false) {
+                seed = Math.trunc(1E9 * myrng()).toString(); // Generate a *new* seed string for the next attempt
+                console.info(`Setting seed string to '${seed}' for next attempt`);
+            }
+            else {
+                break; // generated a valid puzzle
             }
         }
 
-        if (stepsWidget) {
-            stepsWidget.push({ action: "End" });
-        }
-
-        if (generatedPuzzle === false) {
-            throw new Error(`Failed to generate a valid puzzle after ${maxNumAttempts} attempts.`);
-        }
-
-        console.info(`Generated a valid puzzle after ${numAttempts} attempts.`);
-
         const endTime = Date.now();
         stats.totalDuration = (endTime - startTime) / 1000; // Convert to seconds
-        console.info(`Total puzzle generation time: ${stats.totalDuration} seconds`);
+        let resultStr = attempt.succeeded ? "Generated a valid puzzle" : "Failed to generate a valid puzzle";
+        stepsWidget.push({
+            message: `${resultStr} after ${numAttempts} attempts in ${stats.totalDuration} seconds.`,
+            action: GameSteps.MESSAGE
+        })
 
-        return { puzzle: puzzle, stats: stats };
+        return stats;
     }
 
     hashString(str) { // Example hash function (you can use a better one)

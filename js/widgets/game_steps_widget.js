@@ -15,6 +15,7 @@ export class GameStepsWidget {
     this.playing = false;
     this.animationFrameId = null;
     this.replayEnabled = true;
+    this.recordingEnabled = true;
     this.gameLogicHandler = new GameLogicHandler(this.puzzleGrid);
 
     if (!this.container) {
@@ -25,6 +26,14 @@ export class GameStepsWidget {
     this.loadHTML()
       .then(() => this.initialize())
       .catch(error => console.error("Error during initialization:", error));
+  }
+
+  disableRecording() {
+    this.recordingEnabled = false;
+  }
+
+  enableRecording() {
+    this.recordingEnabled = true;
   }
 
   toggleEnableReplay(value) {
@@ -38,6 +47,10 @@ export class GameStepsWidget {
   }
 
   push(data) {
+    if (this.recordingEnabled === false) {
+      return;
+    }
+
     this.steps.push(data);
     this.slider.max = this.steps.length - 1;
     this.updateSliderValue(this.slider.max);

@@ -1,6 +1,6 @@
 import { solvePuzzleDeductive } from "./deductive.js";
-import { MARKING_NONE, MARKING_QUEEN } from "../widgets/puzzle_grid_state.js"
-import { enableLogging, disableLogging } from "../logger.js"
+import { COLOR_GROUP_NONE, MARKING_NONE, MARKING_QUEEN } from "../widgets/puzzle_grid_state.js"
+import { GameSteps } from "../widgets/game_logic_handler.js";
 
 export function isSafe(puzzleGrid, row, col) {
     const N = puzzleGrid.size();
@@ -72,10 +72,12 @@ export function getAffectedCellsFromPlacingQueenAt(puzzleGrid, row, col) {
 
     // Check color conflicts
     const color = puzzleGrid.getColorGroupAt(row, col);
-    for (let i = 0; i < N; i++) {
-        for (let j = 0; j < N; j++) {
-            if ((i !== row || j !== col) && puzzleGrid.getColorGroupAt(i, j) === color) {
-                affectedCells.add(`${i},${j}`);
+    if (color !== COLOR_GROUP_NONE) {
+        for (let i = 0; i < N; i++) {
+            for (let j = 0; j < N; j++) {
+                if ((i !== row || j !== col) && puzzleGrid.getColorGroupAt(i, j) === color) {
+                    affectedCells.add(`${i},${j}`);
+                }
             }
         }
     }
@@ -122,30 +124,33 @@ export function recalculateConflictingCells(N, state, labels, conflictingCells) 
     return newConflictingCells;
 }
 
-export function getUnpaintedCellCandidates(puzzle) {
-    const paintedCellsPerColor = puzzle.getEmptyCellsPerColor();
-    const unpaintedCellCandidates = {};
+export function getUnpaintedCellCandidates(gameLogicHandler) {
+    const puzzleGrid = gameLogicHandler._puzzleGrid;
+    const N = puzzleGrid.size();
 
-    for (let i = 0; i < puzzle.N; i++) {
+    const unpaintedCellCandidates = new Set();
+    const paintedCellsPerColor = gameLogicHandler.getEmptyCellsPerColor();
+
+    for (let i = 0; i < N; i++) {
         const paintedCells = paintedCellsPerColor[i];
         const candidates = new Set(); // Use a Set to avoid duplicates
 
         for (const cell of paintedCells) {
             const [row, col] = cell; // Destructure the cell tuple
 
-            if (row > 0 && puzzle.labels[row - 1][col] === -1) {
+            if (row > 0 && puzzleGrid.getColorGroupAt(row - 1, col) === COLOR_GROUP_NONE) {
                 candidates.add(`${row - 1},${col}`);
             }
 
-            if (row < puzzle.N - 1 && puzzle.labels[row + 1][col] === -1) {
+            if (row < N - 1 && puzzleGrid.getColorGroupAt(row + 1, col) === COLOR_GROUP_NONE) {
                 candidates.add(`${row + 1},${col}`);
             }
 
-            if (col > 0 && puzzle.labels[row][col - 1] === -1) {
+            if (col > 0 && puzzleGrid.getColorGroupAt(row, col - 1) === -1) {
                 candidates.add(`${row},${col - 1}`);
             }
 
-            if (col < puzzle.N - 1 && puzzle.labels[row][col + 1] === -1) {
+            if (col < N - 1 && puzzleGrid.getColorGroupAt(row, col + 1) === COLOR_GROUP_NONE) {
                 candidates.add(`${row},${col + 1}`);
             }
         }
@@ -158,7 +163,10 @@ export function getUnpaintedCellCandidates(puzzle) {
     return unpaintedCellCandidates;
 }
 
-export function paintSingleCell(puzzle, rng, candidates, attempt, steps) {
+export function paintSingleCell(gameLogicHandler, rng, candidates, attempt, stepsWidget) {
+    const puzzleGrid = gameLogicHandler._puzzleGrid;
+    const N = puzzleGrid.size();
+
     while (Object.keys(candidates).length > 0) { // Check if candidates is empty
         let numCandidates = Object.keys(candidates).length;
 
@@ -171,38 +179,43 @@ export function paintSingleCell(puzzle, rng, candidates, attempt, steps) {
 
         // Fill the selected cell with the selected color
         const [row, col] = cellPick.split(',').map(Number);
-        puzzle.labels[row][col] = parseInt(colorPick); // colorPick is a string, parse to int
-        console.debug(
-            `Random selection: Color ${colorPick}, ` +
-            `Candidate #${cellPick}, Cell [${row}, ${col}]`
-        );
+        const colorGroup = parseInt(colorPick); // colorPick is a string, parse to int
+        puzzleGrid.setColorGroupAt(row, col, colorGroup);
 
         // Display algorithm step
         attempt.numPaintedCells++;
-        const label = parseInt(colorPick);
-        steps.push({ action: "paintCell", row, col, label });
+        stepsWidget.push({
+            message: `Assigning (${row},${col}) to color group ${colorGroup}\n` +
+                     `Random selection: Color ${colorPick},\n` +
+                     `Candidate #${cellPick}, Cell [${row}, ${col}]`,
+            action: GameSteps.ASSIGN_COLOR_GROUP,
+            args: { row, col, colorGroup }
+        });
 
         // Try to solve the puzzle using the deductive solver
-        disableLogging();
-        const deductiveResult = solvePuzzleDeductive(puzzle);
-        enableLogging();
+        stepsWidget.disableRecording();
+        const deductiveResult = solvePuzzleDeductive(puzzleGrid, stepsWidget);
+        stepsWidget.enableRecording();
 
         if (deductiveResult.solved) {
             return true; // successfully painted the cell
         }
 
-        console.debug("Couldn't solve puzzle using deduction. Backtracking");
-        puzzle.labels[row][col] = -1;
+        // puzzle was not solvable -- need to undo the step
+        attempt.numUnpaintedCells++;
+        puzzleGrid.setColorGroupAt(row, col, COLOR_GROUP_NONE);
+        stepsWidget.push({
+            message: `Couldn't solve puzzle using deduction.\n` +
+                     `Backtracking by removing color group assignment from (${row},${col})`,
+                     action: GameSteps.ASSIGN_COLOR_GROUP,
+            args: { row, col, COLOR_GROUP_NONE }
+        });
 
         // Remove candidate from list
         candidates[colorPick].splice(cellPick, 1); // Remove the cell from the array
         if (candidates[colorPick].length === 0) {
             delete candidates[colorPick]; // Remove the color if no candidates left
         }
-
-        // Display algorithm step
-        attempt.numUnpaintedCells++;
-        steps.push({ action: "unpaintCell", row, col });
     }
 
     return false; // Failed to paint the cell

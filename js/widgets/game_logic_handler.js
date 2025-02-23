@@ -1,14 +1,17 @@
 import { isSafe, getAffectedCellsFromPlacingQueenAt } from "../algorithms/logic.js";
-import { MARKING_NONE, MARKING_X, MARKING_QUEEN } from "./puzzle_grid_state.js"
+import { MARKING_NONE, MARKING_X, MARKING_QUEEN, COLOR_GROUP_NONE } from "./puzzle_grid_state.js"
 
 export const GameSteps = Object.freeze({
     MESSAGE                : Symbol("MESSAGE"),
     CLEAR_MARKINGS         : Symbol("CLEAR_MARKINGS"),
+    CLEAR_COLOR_GROUPS     : Symbol("CLEAR_COLOR_GROUPS"),
+    RESIZE_PUZZLE_GRID     : Symbol("RESIZE_PUZZLE_GRID"),
     PLACE_QUEEN            : Symbol("PLACE_QUEEN"),
     REMOVE_QUEEN           : Symbol("REMOVE_QUEEN"),
     ADD_CONSTRAINT_TO_CELL : Symbol("ADD_CONSTRAINT_TO_CELL"),
     ADD_CONSTRAINT_TO_ROWS : Symbol("ADD_CONSTRAINT_TO_ROWS"),
-    ADD_CONSTRAINT_TO_COLS : Symbol("ADD_CONSTRAINT_TO_COLS")
+    ADD_CONSTRAINT_TO_COLS : Symbol("ADD_CONSTRAINT_TO_COLS"),
+    ASSIGN_COLOR_GROUP     : Symbol("ASSIGN_COLOR_GROUP")
 });
 
 export class GameLogicHandler {
@@ -45,6 +48,10 @@ export class GameLogicHandler {
                 this._puzzleGrid.setInfoLabelAt(r, c, 0);
             }
         }
+    }
+
+    clearColorGroups() {
+        this._puzzleGrid.clearColorGroups();
     }
 
     resizePuzzleGrid(newSize) {
@@ -130,6 +137,11 @@ export class GameLogicHandler {
         for (const cell of emptyCells) {
             const [row, col] = cell;
             const colorGroup = this._puzzleGrid.getColorGroupAt(row, col);
+
+            if (colorGroup === COLOR_GROUP_NONE) {
+                continue;
+            }
+
             emptyCellsPerColor[colorGroup].push(cell);
         }
 
@@ -246,6 +258,10 @@ export class GameLogicHandler {
         return updatedCells;
     }
 
+    assignColorGroup(row, col, colorGroup) {
+        this._puzzleGrid.setColorGroupAt(row, col, colorGroup);
+    }
+
     colorGroupHasQueen(colorGroup) {
         for (const queen of this._placedQueens) {
             const [row, col] = queen.split(',').map(Number);
@@ -258,6 +274,24 @@ export class GameLogicHandler {
         return false;
     }
 
+    hasUnpaintedCells() {
+        return this.getUnpaintedCells().length > 0;
+    }
+
+    getUnpaintedCells() {
+        const unpaintedCells = [];
+
+        for (let row = 0; row < this.N; row++) {
+          for (let col = 0; col < this.N; col++) {
+            if (this.getColorGroupAt(row, col) === COLOR_GROUP_NONE) {
+                unpaintedCells.push([row, col]);
+            }
+          }
+        }
+
+        return unpaintedCells;
+    }
+
     replayStep(step) {
         let updatedCells;
         switch (step.action) {
@@ -265,6 +299,12 @@ export class GameLogicHandler {
             break;
         case GameSteps.CLEAR_MARKINGS:
             this.clearMarkings();
+            break;
+        case GameSteps.CLEAR_COLOR_GROUPS:
+            this.clearColorGroups();
+            break;
+        case GameSteps.RESIZE_PUZZLE_GRID:
+            this.resizePuzzleGrid(step.args.newSize);
             break;
         case GameSteps.PLACE_QUEEN:
             updatedCells = this.placeQueen(step.args.row, step.args.col);
@@ -281,8 +321,11 @@ export class GameLogicHandler {
         case GameSteps.ADD_CONSTRAINT_TO_COLS:
             updatedCells = this.addConstraintToCols(step.args.cols, step.args.excludeColors);
             break;
+        case GameSteps.ASSIGN_COLOR_GROUP:
+            updatedCells = this.assignColorGroup(step.args.row, step.args.col, step.args.colorGroup);
+            break;
         default:
-            console.error(`Unknown action`);
+            console.error(`Unknown action ${step.action.toString()}`);
         }
 
         if (step.highlightedCells !== undefined) {
