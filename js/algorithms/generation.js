@@ -1,4 +1,3 @@
-import { PuzzleGridWidget } from "../widgets/puzzle_grid_widget.js"
 import { solvePuzzleBacktracking } from "./backtracking.js"
 import { solvePuzzleDeductive } from "./deductive.js"
 import { getUnpaintedCellCandidates, paintSingleCell } from "./logic.js"

@@ -39,6 +39,11 @@
    */
   resizeGrid(size) {
     console.log(`Resizing grid from ${this.size} to ${size}`);
+    if (this._callback) {
+      this._clearPreviousEventListeners();
+      this._boundClickHandlers = {};
+    }
+
     this.size = size;
     this._grid.innerHTML = '';
 
@@ -50,6 +55,8 @@
 
     // Create the grid
     for (let i = 0; i < this.size; i++) {
+      this._boundClickHandlers[i] = {}; // Initialize inner object for each row
+
       for (let j = 0; j < this.size; j++) {
         const cell = document.createElement('div');
         cell.classList.add('grid-cell');
@@ -98,13 +105,7 @@
    */
   setOnClick(callback) {
     if (this._callback) {
-      // Clear previous event listeners
-      for (let i = 0; i < this.size; ++i) {
-        for (let j = 0; j < this.size; ++j) {
-          const cell = this._getCellElement(i, j);
-          cell.removeEventListener('click', this._boundClickHandlers[i][j]);
-        }
-      }
+      this._clearPreviousEventListeners();
     }
 
     // Store the new callback
@@ -120,6 +121,15 @@
           this._boundClickHandlers[i][j] = () => this._callback(i, j);
           cell.addEventListener('click', this._boundClickHandlers[i][j]);
         }
+      }
+    }
+  }
+
+  _clearPreviousEventListeners() {
+    for (let i = 0; i < this.size; ++i) {
+      for (let j = 0; j < this.size; ++j) {
+        const cell = this._getCellElement(i, j);
+        cell.removeEventListener('click', this._boundClickHandlers[i][j]);
       }
     }
   }

@@ -197,7 +197,6 @@ export class GameLogicHandler {
                 }
 
                 this._constraintCount[row][j] += 1;
-
                 if (this._constraintCount[row][j] === 1) {
                     this._puzzleGrid.setMarkingAt(row, j, MARKING_X);
                     updatedCells.push([row, j]);
@@ -221,7 +220,7 @@ export class GameLogicHandler {
 
         for (const col of cols) {
             for (let i = 0; i < this.puzzleSize(); ++i) {
-                const colorGroup = this.labels[i][col];
+                const colorGroup = this._puzzleGrid.getColorGroupAt(i, col);
                 const L = excludeColorGroups.length;
                 let excludeCell = false;
                 for (let idx = 0; idx < L; ++idx) {
@@ -235,10 +234,10 @@ export class GameLogicHandler {
                     continue;
                 }
 
-                this.constraintCount[i][col] += 1;
-                if (this.constraintCount[i][col] === 1) {
-                    this._puzzleGrid.setMarkingAt(row, j, MARKING_X);
-                    updatedCells.push([row, j]);
+                this._constraintCount[i][col] += 1;
+                if (this._constraintCount[i][col] === 1) {
+                    this._puzzleGrid.setMarkingAt(i, col, MARKING_X);
+                    updatedCells.push([i, col]);
                 }
             }
         }
@@ -319,7 +318,7 @@ export class GameLogicHandler {
             updatedCells = this.addConstraintToRows(step.args.rows, step.args.excludeColors);
             break;
         case GameSteps.ADD_CONSTRAINT_TO_COLS:
-            updatedCells = this.addConstraintToCols(step.args.cols, step.args.excludeColors);
+            updatedCells = this.addConstraintToColumns(step.args.cols, step.args.excludeColors);
             break;
         case GameSteps.ASSIGN_COLOR_GROUP:
             updatedCells = this.assignColorGroup(step.args.row, step.args.col, step.args.colorGroup);

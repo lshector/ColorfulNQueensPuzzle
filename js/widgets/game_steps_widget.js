@@ -55,9 +55,9 @@ export class GameStepsWidget {
     this.slider.max = this.steps.length - 1;
     this.updateSliderValue(this.slider.max);
 
-    if (data.message) {
-      console.log(data.message);
-    }
+    //if (data.message) {
+    //  console.log(data.message);
+    //}
   }
 
   async loadHTML() {

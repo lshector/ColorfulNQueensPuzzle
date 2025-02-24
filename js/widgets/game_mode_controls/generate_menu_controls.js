@@ -38,6 +38,8 @@ export class GenerateMenuControls extends MenuControls {
             alert("Puzzle generation failed. See console for details.");
         }
         this.stepsWidget.toggleEnableReplay(true);
+        this.puzzleGrid.clearMarkings();
+        this.puzzleGrid.render();
     }
 }
 

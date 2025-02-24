@@ -34,7 +34,7 @@ export class PuzzleGridRenderer {
     this._gridWidget = gridWidget;
     this._renderPeriodMs = 33;
     this._renderPending = false;
-    this._pendingUpdates = [];
+    this._pendingUpdates = {};
     this._colorScheme = DEFAULT_COLOR_SCHEME;
     this._darkenedColorScheme = [];
     for (const color of this._colorScheme) {
@@ -52,15 +52,24 @@ export class PuzzleGridRenderer {
   }
 
   update(data) {
-    this._pendingUpdates.push(data);
+    const [row, col] = [data.row, data.col];
+    const key = `${row},${col}`
+    if (key in this._pendingUpdates) {
+      // merge with existing cell update
+      Object.assign(this._pendingUpdates[key], data);
+    }
+    else {
+      // new cell update
+      this._pendingUpdates[key] = data;
+    }
     this.refresh();
   }
 
   render() {
     // TODO: add updates for grid cell borders
-    console.log(`Rendering ${this._pendingUpdates.length} updates...`);
+    console.log(`Rendering ${Object.keys(this._pendingUpdates).length} updates...`);
     let gridUpdatesList = [];
-    for (const rendererUpdate of this._pendingUpdates) {
+    Object.entries(this._pendingUpdates).forEach(([key, rendererUpdate]) => {
       let [row, col] = [rendererUpdate.row, rendererUpdate.col];
       let gridUpdate = { row, col };
       if (rendererUpdate.marking !== undefined) {
@@ -82,10 +91,10 @@ export class PuzzleGridRenderer {
       }
 
       gridUpdatesList.push(gridUpdate);
-    }
+    });
 
     this._gridWidget.updateGrid(gridUpdatesList);
-    this._pendingUpdates = [];
+    this._pendingUpdates = {};
   }
 
   updateEntireGrid(newMarkings, newLabels) {

@@ -170,8 +170,8 @@ export function paintSingleCell(gameLogicHandler, rng, candidates, attempt, step
     while (Object.keys(candidates).length > 0) { // Check if candidates is empty
         let numCandidates = Object.keys(candidates).length;
 
-        console.debug(`There are ${numCandidates} possible selections`);
-        console.debug(`Possible selections:\n${JSON.stringify(candidates, null, 2)}`); // Use JSON.stringify for better formatting
+        console.info(`There are ${numCandidates} possible selections`);
+        console.info(`Possible selections:\n${JSON.stringify(candidates, null, 2)}`); // Use JSON.stringify for better formatting
 
         const colorPick = rng.choice(Object.keys(candidates)); // Get a random key (color)
         const candidateCells = candidates[colorPick]; // Get the array of candidate cells for that color
@@ -208,7 +208,7 @@ export function paintSingleCell(gameLogicHandler, rng, candidates, attempt, step
             message: `Couldn't solve puzzle using deduction.\n` +
                      `Backtracking by removing color group assignment from (${row},${col})`,
                      action: GameSteps.ASSIGN_COLOR_GROUP,
-            args: { row, col, COLOR_GROUP_NONE }
+            args: { row, col, colorGroup: COLOR_GROUP_NONE }
         });
 
         // Remove candidate from list
