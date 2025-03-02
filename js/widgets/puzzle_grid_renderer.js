@@ -3,7 +3,30 @@ import { MARKING_NONE, MARKING_X, MARKING_QUEEN, PuzzleGridState } from "./puzzl
 export const DEFAULT_COLOR_SCHEME = [
   "#B3DFA0", "#FE7B5F", "#96BDFE", "#62EFE9", "#DFDFDF",
   "#B9B29F", "#BBA3E1", "#FECA91", "#A3D2D8", "#DFA0BF",
-  "#E6F389"
+  "#E6F389",
+
+  "#A0E6C2", // More green-teal
+  "#FF8C69", // Brighter orange
+  "#80B3FF", // Deeper blue
+  "#50E3C2", // More turquoise
+  "#E0E0E0", // Still neutral, but slightly different tone
+  "#B0A890", // More brown-beige
+  "#C099E6", // More violet
+  "#FFD280", // More golden yellow
+  "#90CED9", // More cyan-blue
+  "#E699C2", // More magenta-pink
+  "#E0F070", // More chartreuse
+  "#99E6A0", // Brighter, more yellow-green
+  "#FF7059", // Deeper, more red-orange
+  "#70A3FF", // Deeper, more royal blue
+  "#40D9B3", // Brighter, more intense turquoise
+  "#D0D0D0", // Slightly darker gray
+  "#A8A089", // More muted brown
+  "#B390E0", // More periwinkle
+  "#FFC270", // More mustard yellow
+  "#89C0C9", // More desaturated cyan
+  "#D990B3", // More rose pink
+  "#D0E060" // More olive green
 ];
 
 // Helper function to darken a color (adjust as needed)
@@ -38,6 +61,7 @@ export class PuzzleGridRenderer {
     this._pendingUpdates = {};
     this._colorScheme = DEFAULT_COLOR_SCHEME;
     this._darkenedColorScheme = [];
+    this._hideInfoLabel = true;
     for (const color of this._colorScheme) {
       this._darkenedColorScheme.push(darkenColor(color, 0.5));
     }
@@ -77,7 +101,7 @@ export class PuzzleGridRenderer {
       if (rendererUpdate.marking !== undefined) {
         gridUpdate.centerLabel = MARKINGS_TO_TEXT[rendererUpdate.marking];
       }
-      if (rendererUpdate.infoLabel !== undefined) {
+      if (rendererUpdate.infoLabel !== undefined && !this._hideInfoLabel) {
         gridUpdate.topLeftLabel = rendererUpdate.infoLabel;
       }
       if (rendererUpdate.colorGroup !== undefined) {
