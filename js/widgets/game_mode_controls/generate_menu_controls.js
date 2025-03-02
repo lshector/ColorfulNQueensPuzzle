@@ -30,7 +30,7 @@ export class GenerateMenuControls extends MenuControls {
         this.stepsWidget.toggleEnableReplay(false);
         try {
             const generator = new PuzzleGenerator(this.puzzleGrid);
-            const stats = generator.run(N, this.stepsWidget, seed, maxAttempts);
+            const stats = await generator.run(N, this.stepsWidget, seed, maxAttempts);
             console.log("Puzzle generated successfully:", this.puzzleGrid);
             console.log("Stats:", stats);
         } catch (error) {

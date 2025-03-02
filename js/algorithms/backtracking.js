@@ -80,12 +80,13 @@ export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod 
 
         for (let i = 0; i < candidateMoves.length; i++) {
             const [row, col] = candidateMoves[i];
+
+            gameLogicHandler.placeQueen(row, col);
             stepsWidget.push({
                 message: `Placing queen at: ${row}, ${col}`,
                 action: GameSteps.PLACE_QUEEN,
                 args: { row, col }
             });
-            gameLogicHandler.placeQueen(row, col);
 
             if (gameLogicHandler.isSolved()) {
                 stepsWidget.push({
@@ -100,12 +101,12 @@ export function solvePuzzleBacktracking(puzzleGrid, stepsWidget, moveRankMethod 
                 return recursiveSolution;
             }
 
+            gameLogicHandler.removeQueen(row, col);
             stepsWidget.push({
                 message: `Removing queen from: ${row}, ${col}`,
                 action: GameSteps.REMOVE_QUEEN,
                 args: { row, col }
             });
-            gameLogicHandler.removeQueen(row, col);
         }
 
         return null;

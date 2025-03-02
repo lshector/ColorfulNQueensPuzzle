@@ -32,8 +32,9 @@ export const MARKINGS_TO_TEXT = {
 export class PuzzleGridRenderer {
   constructor(gridWidget) {
     this._gridWidget = gridWidget;
-    this._renderPeriodMs = 33;
+    this._renderPeriodMs = 1000;
     this._renderPending = false;
+    this._lastRenderTime = 0;
     this._pendingUpdates = {};
     this._colorScheme = DEFAULT_COLOR_SCHEME;
     this._darkenedColorScheme = [];
@@ -45,9 +46,10 @@ export class PuzzleGridRenderer {
   refresh() {
     if (!this._renderPending) {
       this._renderPending = true;
-      this.render();
-
-      setTimeout(() => { this._renderPending = false; }, this._renderPeriodMs);
+      requestAnimationFrame(() => {
+          this.render();
+          this._renderPending = false;
+      });
     }
   }
 

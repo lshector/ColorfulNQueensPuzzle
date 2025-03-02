@@ -170,8 +170,8 @@ export function paintSingleCell(gameLogicHandler, rng, candidates, attempt, step
     while (Object.keys(candidates).length > 0) { // Check if candidates is empty
         let numCandidates = Object.keys(candidates).length;
 
-        console.info(`There are ${numCandidates} possible selections`);
-        console.info(`Possible selections:\n${JSON.stringify(candidates, null, 2)}`); // Use JSON.stringify for better formatting
+        console.debug(`There are ${numCandidates} possible selections`);
+        console.debug(`Possible selections:\n${JSON.stringify(candidates, null, 2)}`); // Use JSON.stringify for better formatting
 
         const colorPick = rng.choice(Object.keys(candidates)); // Get a random key (color)
         const candidateCells = candidates[colorPick]; // Get the array of candidate cells for that color
@@ -194,7 +194,9 @@ export function paintSingleCell(gameLogicHandler, rng, candidates, attempt, step
 
         // Try to solve the puzzle using the deductive solver
         stepsWidget.disableRecording();
+        puzzleGrid.clearMarkings();
         const deductiveResult = solvePuzzleDeductive(puzzleGrid, stepsWidget);
+        puzzleGrid.clearMarkings();
         stepsWidget.enableRecording();
 
         if (deductiveResult.solved) {

@@ -26,7 +26,7 @@ class Stats {
     }
 }
 
-function generatePuzzleSingleAttempt(gameLogicHandler, rng, stepsWidget) {
+async function generatePuzzleSingleAttempt(gameLogicHandler, rng, stepsWidget) {
     const attempt = new Stats.GenerationStats();
 
     // Generate a valid placement for queens using solvePuzzleBacktracking
@@ -69,6 +69,8 @@ function generatePuzzleSingleAttempt(gameLogicHandler, rng, stepsWidget) {
             console.info("Exhausted all possible selections to paint a cell");
             return attempt;
         }
+
+        await new Promise(resolve => setTimeout(resolve, 0)); // Yield control to the event loop
     }
 
     if (gameLogicHandler.hasUnpaintedCells()) {
@@ -94,7 +96,7 @@ export class PuzzleGenerator {
         this._puzzleGrid = puzzleGrid;
     }
 
-    run(N, stepsWidget, seed = "colorful-n-queens", maxNumAttempts = 1) {
+    async run(N, stepsWidget, seed = "colorful-n-queens", maxNumAttempts = 1) {
         console.log(this._puzzleGrid);
         const gameLogicHandler = new GameLogicHandler(this._puzzleGrid);
 
@@ -112,6 +114,7 @@ export class PuzzleGenerator {
         while (numAttempts < maxNumAttempts) {
             numAttempts++;
             const seedHash = this.hashString(seed);
+            gameLogicHandler.clearColorGroups();
             stepsWidget.push({
                 message: `Starting attempt ${numAttempts} to generate a valid puzzle\n` +
                          `Seeding RNG using seed string '${seed}'\n` +
@@ -136,7 +139,7 @@ export class PuzzleGenerator {
             };
 
             const attemptStartTime = Date.now();
-            attempt = generatePuzzleSingleAttempt(gameLogicHandler, rng, stepsWidget);
+            attempt = await generatePuzzleSingleAttempt(gameLogicHandler, rng, stepsWidget);
             const attemptEndTime = Date.now();
             attempt.duration = (attemptEndTime - attemptStartTime) / 1000;
             console.info(`Attempt ${numAttempts} took ${attempt.duration} seconds`);
