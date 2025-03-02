@@ -1,7 +1,7 @@
-import { PuzzleGridWidget } from './widgets/puzzle_grid_widget.js'
-import { ControlsWidget } from './widgets/controls_widget.js'
+import { PuzzleGrid } from "./widgets/puzzle_grid.js";
+import { ControlsWidget } from "./widgets/controls_widget.js";
 
-const GRID_LABELS = [
+const DEFAULT_PUZZLE = [
     [1, 1, 1, 7, 7, 7, 2, 2],
     [1, 1, 1, 7, 2, 2, 2, 0],
     [1, 1, 7, 7, 7, 0, 0, 0],
@@ -11,9 +11,8 @@ const GRID_LABELS = [
     [1, 4, 4, 4, 5, 5, 5, 6],
     [4, 4, 4, 5, 5, 5, 5, 5]
 ];
+let puzzleGrid = PuzzleGrid.getInstance('grid-container');
+puzzleGrid.setAllColorGroups(DEFAULT_PUZZLE);
 
-let puzzleGridWidget = new PuzzleGridWidget(GRID_LABELS.length)
-puzzleGridWidget.setLabels(GRID_LABELS)
-
-let controlsWidget = new ControlsWidget(puzzleGridWidget)
-controlsWidget.buttons.info.click();
+let puzzleControls = new ControlsWidget(puzzleGrid);
+puzzleControls.buttons.info.click();
