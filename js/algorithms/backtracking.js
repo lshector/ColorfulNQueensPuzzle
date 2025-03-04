@@ -21,7 +21,7 @@ function _generateBacktrackingMovesByRow(gameLogicHandler, index) {
     const selectionPool = [];
     for (let col = 0; col < gameLogicHandler.puzzleSize(); col++) {
         selectionPool.push([row, col]);
-        if (gameLogicHandler.isSafe(row, col)) {
+        if (gameLogicHandler.isUnmarked(row, col)) {
             candidateMoves.push([ row, col ]);
         }
     }
@@ -39,7 +39,7 @@ function _generateBacktrackingMovesByCol(gameLogicHandler, index) {
     const selectionPool = [];
     for (let row = 0; row < gameLogicHandler.puzzleSize(); row++) {
         selectionPool.push([row, col]);
-        if (gameLogicHandler.isSafe(row, col)) {
+        if (gameLogicHandler.isUnmarked(row, col)) {
             candidateMoves.push([ row, col ]);
         }
     }

@@ -1,4 +1,4 @@
-import { isSafe, getAffectedCellsFromPlacingQueenAt } from "../algorithms/logic.js";
+import { getAffectedCellsFromPlacingQueenAt } from "../algorithms/logic.js";
 import { MARKING_NONE, MARKING_X, MARKING_QUEEN, COLOR_GROUP_NONE } from "./puzzle_grid_state.js"
 
 export const GameSteps = Object.freeze({
@@ -107,7 +107,7 @@ export class GameLogicHandler {
         return updatedCells;
     }
 
-    isSafe(row, col) {
+    isUnmarked(row, col) {
         return this._puzzleGrid.getMarkingAt(row, col) === MARKING_NONE;
     }
 
